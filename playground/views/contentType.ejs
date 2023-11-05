@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= contentType %> Content</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto mt-10">
+    <div class="flex">
+      <div class="w-1/4 mr-4 p-4 bg-white shadow-md rounded">
+        <h2 class="text-lg font-semibold mb-4">Select Content Type</h2>
+        <% if (contentTypes.data) { %>
+            <ul>
+            <% contentTypes.data.forEach(function(type) { %>
+                <li><a href="/content/<%= type.drupal_internal__type %>"><%= type.name %></a></li>
+            <% }) %>
+            </ul>
+        <% } else { %>
+            <p>No content types available.</p>
+        <% } %>
+      </div>
+      <!-- Table container -->
+      <div class="w-1/4 mr-4 p-4 bg-white shadow-md rounded">
+        <h2 class="text-lg font-semibold mb-4">Content List: <%= contentType %></h2>
+        <table class="min-w-full leading-normal">
+          <thead>
+            <tr>
+              <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Title
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <% items.forEach(item => { %>
+              <tr>
+                <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                  <%= item.title %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- JSON container -->
+      <div class="w-1/2 ml-4 p-4 bg-white shadow-md rounded">
+        <h2 class="text-lg font-semibold mb-4">Raw JSON Data</h2>
+        <pre class="overflow-auto text-xs"><%= JSON.stringify(items, null, 2) %></pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
