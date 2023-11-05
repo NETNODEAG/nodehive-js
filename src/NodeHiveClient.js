@@ -75,6 +75,40 @@ export class NodeHiveClient {
     }
 
     /**
+     * Retrieves all available menus from the Drupal JSON:API.
+     * @returns {Promise<any>} - A Promise that resolves to the list of available menus.
+     */
+    async getAvailableMenus() {
+        // Construct the endpoint URL for retrieving menus
+        const endpoint = `/jsonapi/menu/menu`;
+
+        // Make the GET request to the Drupal JSON:API
+        return this.request(endpoint, 'GET');
+    }
+
+    /**
+     * Retrieves menu items by menu id from the Drupal JSON:API.
+     * @param {string} menuId - The unique identifier for the menu.
+     * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
+     * @returns {Promise<any>} - A Promise that resolves to the menu items data.
+     */
+    async getMenuItems(menuId, params = null) {
+        // Initialize an empty query string
+        let queryString = '';
+
+        // Build the query string if params are provided and are an instance of DrupalJsonApiParams
+        if (params instanceof DrupalJsonApiParams) {
+            queryString = '?' + buildQueryString(params);
+        }
+
+        // Construct the endpoint URL using the menu id
+        const endpoint = `/jsonapi/menu_items/${menuId}${queryString}`;
+
+        // Make the GET request to the Drupal JSON:API
+        return this.request(endpoint, 'GET');
+    }
+
+    /**
      * Retrieves a list of nodes from the Drupal JSON:API.
      * @param {string} contentType - The content type to interact with.
      * @param {DrupalJsonApiParams} params - DrupalJsonApiParams to customize the query.

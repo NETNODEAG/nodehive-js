@@ -8,10 +8,17 @@
 </head>
 <body class="bg-gray-100">
   <div class="container mx-auto mt-10">
-  
     <%- include('partials/navigation') %>
-    <h1 class="text-2xl font-bold text-gray-900 my-4">NodeHive Playground</h1>
-    <p></p>
+  <h1 class="text-lg font-semibold mb-4">Select Content Type</h1>
+  <% if (contentTypes.data) { %>
+    <ul>
+      <% contentTypes.data.forEach(function(type) { %>
+        <li><a href="/content/<%= type.drupal_internal__type %>"><%= type.name %></a></li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p>No content types available.</p>
+  <% } %>
   </div>
 </body>
 </html>

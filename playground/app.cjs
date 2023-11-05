@@ -17,6 +17,15 @@ app.use(express.static('public'));
 // Route for the home page with form
 app.get('/', async (req, res) => {
   try {
+    res.render('index');
+  } catch (error) {
+    console.error('Error loading content types:', error);
+    res.status(500).render('error', { error: error.message });
+  }
+});
+// Route for the home page with form
+app.get('/content', async (req, res) => {
+  try {
     const module = await import('../src/NodeHiveClient.js');
     const NodeHiveClient = module.NodeHiveClient;
     const client = new NodeHiveClient(process.env.NODEHIVE_URL);
@@ -24,7 +33,7 @@ app.get('/', async (req, res) => {
     console.log(contentTypes.data);
 
     // Render the index page and pass the content types to the view
-    res.render('index', { contentTypes });
+    res.render('content', { contentTypes });
   } catch (error) {
     console.error('Error loading content types:', error);
     res.status(500).render('error', { error: error.message });
@@ -46,6 +55,23 @@ app.get('/content/:contentType', async (req, res) => {
     res.render('contentType', { items: items.data, contentType, contentTypes });
   } catch (error) {
     console.error('Error loading content type:', error);
+    res.status(500).render('error', { error: error.message });
+  }
+});
+
+// Route for displaying menus
+app.get('/menus', async (req, res) => {
+  try {
+    const module = await import('../src/NodeHiveClient.js');
+    const NodeHiveClient = module.NodeHiveClient;
+    const client = new NodeHiveClient(process.env.NODEHIVE_URL);
+    
+    const menus = await client.getAvailableMenus();
+    console.log(menus.data)
+    // Render a new view for displaying menus, passing the menus to the view
+    res.render('menus', { menus: menus.data });
+  } catch (error) {
+    console.error('Error loading menus:', error);
     res.status(500).render('error', { error: error.message });
   }
 });

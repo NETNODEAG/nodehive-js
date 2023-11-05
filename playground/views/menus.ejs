@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menus</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.4/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto px-4">
+    <%- include('partials/navigation') %>
+    <h1 class="text-2xl font-bold text-gray-900 my-4">Menus</h1>
+    <ul class="bg-white rounded-lg border border-gray-200 text-gray-900">
+      <% menus.forEach(function(menu) { %>
+        <li class="px-6 py-2 border-b border-gray-200 w-full rounded-t-lg">
+          <a href="/menus/<%= menu.drupal_internal__id %>">
+            <%= menu.label %>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+</body>
+</html>
