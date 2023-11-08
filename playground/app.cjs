@@ -1,4 +1,5 @@
 // app.js
+import { DrupalJsonApiParams } from '../drupal-jsonapi-params';
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -50,7 +51,10 @@ app.get('/content/:contentType', async (req, res) => {
     
     const contentTypes = await client.getContentTypes();
 
-    const items = await client.getNodes(contentType, { page: { limit: 10 } });
+    const apiParams = new DrupalJsonApiParams();
+    apiParams.addFilter('status', '1').addPageLimi(1);
+
+    const items = await client.getNodes(contentType, apiParams);
     // Render the view with the items and content type
     res.render('contentType', { items: items.data, contentType, contentTypes });
   } catch (error) {

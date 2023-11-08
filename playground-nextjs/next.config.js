@@ -1,0 +1,17 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {},
+  images: {
+    domains: [process.env.NEXT_IMAGE_DOMAIN],
+  },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      // issuer: /\.[jt]sx?$/, https://github.com/vercel/next.js/issues/48177
+      use: ['@svgr/webpack'],
+    });
+    return config;
+  },
+};
+
+module.exports = nextConfig;

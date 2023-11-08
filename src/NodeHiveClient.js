@@ -6,6 +6,7 @@ import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
  */
 export class NodeHiveClient {
     baseUrl;
+    config;
 
     /**
      * Instantiates a new NodeHive client.
@@ -15,12 +16,13 @@ export class NodeHiveClient {
      * @param {baseUrl} baseUrl The baseUrl of your Drupal site.
      * @param {options} options Options for the client.
      */
-    constructor(baseUrl, options = {}) {
+    constructor(baseUrl, config, options = {}) {
         if (!baseUrl || typeof baseUrl !== "string") {
             throw new Error("The 'baseUrl' param is required.");
         }
         this.baseUrl = baseUrl;
         this.options = options;
+        this.config = config;
     }
 
     /**
@@ -92,17 +94,28 @@ export class NodeHiveClient {
      * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
      * @returns {Promise<any>} - A Promise that resolves to the menu items data.
      */
-    async getMenuItems(menuId, params = null) {
+    async getMenuItems(menuId) {
         // Initialize an empty query string
-        let queryString = '';
+        const apiParams = new DrupalJsonApiParams();
 
-        // Build the query string if params are provided and are an instance of DrupalJsonApiParams
-        if (params instanceof DrupalJsonApiParams) {
-            queryString = '?' + buildQueryString(params);
-        }
+        apiParams
+            .addFilter('status', '1')
+            .addFields('menu_link_content--menu_link_content', [
+                'title',
+                'url',
+                'enabled',
+                'menu_name',
+                'external',
+                'options',
+                'weight',
+                'expanded',
+                'parent',
+            ])
+            .getQueryObject();
 
+        const queryString = apiParams.getQueryString();
         // Construct the endpoint URL using the menu id
-        const endpoint = `/jsonapi/menu_items/${menuId}${queryString}`;
+        const endpoint = `/jsonapi/menu_items/${menuId}?${queryString}&jsonapi_include=1`;
 
         // Make the GET request to the Drupal JSON:API
         return this.request(endpoint, 'GET');
@@ -114,13 +127,26 @@ export class NodeHiveClient {
      * @param {DrupalJsonApiParams} params - DrupalJsonApiParams to customize the query.
      * @returns {Promise<any>} - A Promise that resolves to the list of nodes.
      */
-    async getNodes(contentType, params = null) {
+    async getNodes(contentType, lang = null, params = new DrupalJsonApiParams()) {
         // Initialize an empty query string
         let queryString = '';
+
+        if (this.config.nodes.contentType) {
+            this.config.nodes.contentType.include.map((item) => {
+                console.log('addinclude', item)
+                params.addInclude(item.value)
+            })
+        }
 
         // Build the query string if params are provided and are an instance of DrupalJsonApiParams
         if (params instanceof DrupalJsonApiParams) {
             queryString = '?' + buildQueryString(params);
+        }
+
+
+
+        if (lang) {
+            return this.request(`/${lang}/jsonapi/node/${contentType}${queryString}`, 'GET');
         }
         return this.request(`/jsonapi/node/${contentType}${queryString}`, 'GET');
     }
@@ -132,19 +158,29 @@ export class NodeHiveClient {
      * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
      * @returns {Promise<any>} - A Promise that resolves to the node data.
      */
-    async getNode(uuid, contentType, params = null) {
+    async getNode(uuid, contentType, lang = null, params = new DrupalJsonApiParams) {
         // Initialize an empty query string
         let queryString = '';
 
-        // Build the query string if params are provided and are an instance of DrupalJsonApiParams
-        if (params instanceof DrupalJsonApiParams) {
-            queryString = '?' + buildQueryString(params);
+        if (this.config.nodes.contentType) {
+            this.config.nodes.contentType.include.map((item) => {
+                console.log('addinclude', item)
+                params.addInclude(item.value)
+            })
         }
+
+        
+        queryString = '?' + buildQueryString(params);
+        
 
         // Construct the endpoint URL using the node UUID and content type
         const endpoint = `/jsonapi/node/${contentType}/${uuid}${queryString}`;
+        console.log(endpoint)
 
-        // Make the GET request to the Drupal JSON:API
+        if (lang) {
+            return this.request(`/${lang}${endpoint}`, 'GET');
+        }
+
         return this.request(endpoint, 'GET');
     }
 
@@ -165,9 +201,19 @@ export class NodeHiveClient {
         }
     }
 
-    async getResourceBySlug(slug) {
-        route = this.router(slug)
-        return this.request(route.jsonapi.individual, 'GET');
+    async getResourceBySlug(slug, lang = null) {
+
+        try {
+            const response = await this.router(slug)
+            console.log('buuu', response)
+
+            const response2 = await this.getNode(response.entity.uuid, response.entity.bundle, lang)
+            return response2
+        } catch (error) {
+            console.error(error);
+        }
     }
+
+
 
 }

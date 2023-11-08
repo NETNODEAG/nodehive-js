@@ -2,8 +2,8 @@
 import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
 
 const module = await import('../src/NodeHiveClient.js');
-    const NodeHiveClient = module.NodeHiveClient;
-const client = new NodeHiveClient('https://www.netnode.ch');
+const NodeHiveClient = module.NodeHiveClient;
+const client = new NodeHiveClient('https://demo.nodehive.app');
 
 client.getContentTypes().then(data => {
     console.log(data);
