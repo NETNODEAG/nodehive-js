@@ -8,6 +8,7 @@ export class NodeHiveClient {
     baseUrl;
     config;
 
+
     /**
      * Instantiates a new NodeHive client.
      *
@@ -23,6 +24,22 @@ export class NodeHiveClient {
         this.baseUrl = baseUrl;
         this.options = options;
         this.config = config;
+    }
+
+    async register() {
+
+    }
+
+    async login() {
+
+    }
+
+    async forgotPassword() {
+
+    }
+
+    async hasValidSession() {
+
     }
 
     /**
@@ -158,19 +175,34 @@ export class NodeHiveClient {
      * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
      * @returns {Promise<any>} - A Promise that resolves to the node data.
      */
-    async getNode(uuid, contentType, lang = null, params = new DrupalJsonApiParams) {
+    async getNode(uuid, contentType, lang = null, params = new DrupalJsonApiParams()) {
         // Initialize an empty query string
         let queryString = '';
-
-        if (this.config.nodes.contentType) {
-            this.config.nodes.contentType.include.map((item) => {
-                console.log('addinclude', item)
-                params.addInclude(item.value)
-            })
+        
+        const type = 'node-' + contentType;
+        
+        if (this.config.entities[type]) {
+            // If 'addFields' property exists, iterate over its items
+            if (this.config.entities[type].addFields) {
+                this.config.entities[type].addFields.forEach(field => {
+                    console.log('addField', field);
+                    //params.addField(field)
+                });
+            }
+        
+            // If 'addInclude' property exists, iterate over its items
+            if (this.config.entities[type].addInclude) {
+                this.config.entities[type].addInclude.forEach(include => {
+                    console.log('addInclude', include);
+                    params.addInclude([include])
+                });
+            }
         }
 
         
-        queryString = '?' + buildQueryString(params);
+        
+        
+        queryString = '?' + params.getQueryString({ encode: false });
         
 
         // Construct the endpoint URL using the node UUID and content type
@@ -184,7 +216,7 @@ export class NodeHiveClient {
         return this.request(endpoint, 'GET');
     }
 
-    async router(slug) {
+    async router(slug, lang = null) {
         // Build the JSON API URL based on the slug array
         const jsonApiUrl = '/router/translate-path?path=' + slug + '/?format=json_api';
 
