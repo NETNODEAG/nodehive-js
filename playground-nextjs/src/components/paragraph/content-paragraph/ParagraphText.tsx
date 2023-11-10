@@ -5,16 +5,25 @@ export interface ParagraphTextProps {
 }
 
 export default function ParagraphText({ paragraph }: ParagraphTextProps) {
-  const text = paragraph.field_text;
+  // Extracting title and text from the paragraph
+  const text = paragraph?.field_text?.processed;
+  const title = paragraph?.field_title;
 
   return (
     <section data-paragraph-type="Text">
-      <div
-        className="prose"
-        dangerouslySetInnerHTML={{
-          __html: text?.processed,
-        }}
-      />
+
+      {title && <h2 className="text-xl">{title}</h2>}
+
+      {text && (
+        <div
+          className="prose"
+          dangerouslySetInnerHTML={{
+            __html: text,
+          }}
+        />
+      )}
+
+      
     </section>
   );
 }
