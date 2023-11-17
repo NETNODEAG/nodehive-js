@@ -4,17 +4,17 @@ import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
 
 import { NodeHiveConfig } from '@/config/nodehive.config';
 import { NodeHiveClient } from '../../../src/NodeHiveClient';
+import NodePage from '@/components/node/node-page/NodePage';
 
 export default async function RootPage() {
-  // The getResource() function is used to retrieve a resource, utilizing its unique slug as the identifier.
-  //const entity = await getResource(STARTPAGE_SLUG);
+
 
   const client = new NodeHiveClient(
     process.env.NEXT_PUBLIC_DRUPAL_REST_BASE_URL,
     NodeHiveConfig
   );
 
-  const data = await client.getResourceBySlug(
+  const entity = await client.getResourceBySlug(
     process.env.NODEHIVE_STARTPAGE_SLUG
   );
 
@@ -24,5 +24,7 @@ export default async function RootPage() {
 
   //console.log(data)
 
-  return <h1 className="text-2xl">{data.data.title}</h1>;
+  return (
+    <>{entity?.data?.type === 'node--page' && <NodePage node={entity.data} />}</>
+  );
 }

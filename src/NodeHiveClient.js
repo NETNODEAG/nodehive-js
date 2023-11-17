@@ -182,11 +182,19 @@ export class NodeHiveClient {
         const type = 'node-' + contentType;
         
         if (this.config.entities[type]) {
+            // If 'addFilter' property exists, iterate over its items
+            if (this.config.entities[type].addFilter) {
+                this.config.entities[type].addFilter.forEach(field => {
+                    //console.log('addField', field);
+                    params.addFilter('status', 1)
+                });
+            }
+
             // If 'addFields' property exists, iterate over its items
             if (this.config.entities[type].addFields) {
                 this.config.entities[type].addFields.forEach(field => {
-                    console.log('addField', field);
-                    //params.addField(field)
+                    //console.log('addField', field);
+                    params.addFields(type, [field])
                 });
             }
         
@@ -206,8 +214,7 @@ export class NodeHiveClient {
         
 
         // Construct the endpoint URL using the node UUID and content type
-        const endpoint = `/jsonapi/node/${contentType}/${uuid}${queryString}`;
-        console.log(endpoint)
+        const endpoint = `/jsonapi/node/${contentType}/${uuid}${queryString}&jsonapi_include=1`;
 
         if (lang) {
             return this.request(`/${lang}${endpoint}`, 'GET');
