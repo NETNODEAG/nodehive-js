@@ -1,0 +1,34 @@
+{
+  "name": "nodehive-js",
+  "description": "Official JavaScript client library for NodeHive headless CMS",
+  "version": "1.0.2",
+  "main": "src/NodeHiveClient.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NETNODEAG/nodehive-js.git"
+  },
+  "keywords": [
+    "nodehive",
+    "javascript",
+    "client",
+    "library",
+    "drupal",
+    "jsonapi"
+  ],
+  "author": {
+    "name": "NETNODE AG",
+    "url": "https://www.netnode.ch"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NETNODEAG/nodehive-js/issues"
+  },
+  "homepage": "https://github.com/NETNODEAG/nodehive-js#readme",
+  "dependencies": {
+    "drupal-jsonapi-params": "^2.3.1"
+  }
+}
