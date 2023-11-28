@@ -38,24 +38,27 @@ export class NodeHiveClient {
      */
     async request(endpoint, method = 'GET', data = null, additionalHeaders = {}) {
         const url = `${this.baseUrl}${endpoint}`;
+        console.log('miauuuu');
         console.log(url);
         const headers = {
             'Content-Type': 'application/vnd.api+json',
             ...additionalHeaders
         };
-        console.log(this.options);
-        if (this.options.auth) {
-            headers['Authorization'] = `Bearer ${this.options.auth}`;
+        console.log('mytoken', this.options.token);
+        if (this.options.token) {
+            headers['Authorization'] = `Bearer ${this.options.token}`;
         }
 
         const config = {
             method,
             headers,
-            credentials: 'same-origin',
+            //credentials: 'same-origin',
             next: { revalidate: 1 },
             cache: 'no-store'
             //cache: 'force-cache'
         };
+
+        console.log('config', config)
 
 
 
@@ -68,7 +71,9 @@ export class NodeHiveClient {
         try {
             const response = await fetch(url, config);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const response_body = await response.json()
+                console.log('Response Body', response_body)
+                throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
             }
             return await response.json();
         } catch (error) {
@@ -245,7 +250,7 @@ export class NodeHiveClient {
 
         try {
             const response = await this.router(slug)
-            //console.log('Response getResourceBySlug', response)
+            console.log('Response getResourceBySlug', response)
 
             const response2 = await this.getNode(response.entity.uuid, response.entity.bundle, lang)
             return response2

@@ -14,19 +14,39 @@ export default function NodePage({ node }: NodePageProps) {
   const stringifiedEntity = JSON.stringify(node, null, 2);
   return (
     <article data-node-type="Page" className="container mx-auto">
-      <h1 className="text-2xl mb-10 mt-10">{title}</h1>
+      <h1 className="mb-10 mt-10 text-2xl">{title}</h1>
 
-      
+      {!node.status && (
+        <div
+          className="mb-5 border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700"
+          role="alert"
+        >
+          <p className="font-bold">Info</p>
+          <p>
+            [{node.node_type.meta.drupal_internal__target_id}] {title} is
+            unpublished.
+          </p>
+        </div>
+      )}
+
       <details open>
         <summary>JSON Output</summary>
-        <pre className='bg-black text-slate-50 p-8 text-xs rounded-md'>{stringifiedEntity}</pre>
+        <pre className="rounded-md bg-black p-8 text-xs text-slate-50">
+          {stringifiedEntity}
+        </pre>
       </details>
 
       {Array.isArray(paragraphs) &&
         paragraphs?.map((paragraph: DrupalParagraph) => {
-          return <div className=" mb-10 mt-10 bottom-2 border border-blue-700 p-4"> {paragraph.type}<br />{paragraph.id}
-            <Paragraph key={paragraph.id} paragraph={paragraph} />
-          </div>
+          return (
+            <div className=" bottom-2 mb-10 mt-10 border border-blue-700 p-4">
+              {' '}
+              {paragraph.type}
+              <br />
+              {paragraph.id}
+              <Paragraph key={paragraph.id} paragraph={paragraph} />
+            </div>
+          );
         })}
     </article>
   );
