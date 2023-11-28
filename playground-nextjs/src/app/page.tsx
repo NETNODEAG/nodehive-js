@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
 
 import { NodeHiveConfig } from '@/config/nodehive.config';
-import { NodeHiveClient } from '../../../src/NodeHiveClient';
+import { NodeHiveClient } from '../../../package/src/NodeHiveClient';
 import NodePage from '@/components/node/node-page/NodePage';
 
 export default async function RootPage() {

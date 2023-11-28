@@ -5,7 +5,8 @@ import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
 import { NodeHiveConfig } from '@/config/nodehive.config';
 import NodePage from '@/components/node/node-page/NodePage';
 import Paragraph from '@/components/paragraph/Paragraph';
-import { NodeHiveClient } from '../../../../src/NodeHiveClient';
+import { NodeHiveClient } from '../../../../package/src/NodeHiveClient';
+import VisualEditor from '@/components/NodeHive/VisualEditor';
 
 interface PageProps {
   params: { slug: Array<string> };
@@ -21,6 +22,8 @@ export default async function Page({ params }: PageProps) {
     NodeHiveConfig
   );
 
+  
+
   const apiParams = new DrupalJsonApiParams();
   apiParams.addInclude(['field_paragraphs']);
 
@@ -32,6 +35,9 @@ export default async function Page({ params }: PageProps) {
 
   console.log(entity);
   return (
-    <>{entity?.data?.type === 'node--page' && <NodePage node={entity.data} />}</>
+    <>
+      <VisualEditor />
+      {entity?.data?.type === 'node--page' && <NodePage node={entity.data} />}
+    </>
   );
 }

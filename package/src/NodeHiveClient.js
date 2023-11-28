@@ -26,22 +26,6 @@ export class NodeHiveClient {
         this.config = config;
     }
 
-    async register() {
-
-    }
-
-    async login() {
-
-    }
-
-    async forgotPassword() {
-
-    }
-
-    async hasValidSession() {
-
-    }
-
     /**
      * Makes a request to the Drupal JSON:API.
      * @param {string} endpoint - The API endpoint (e.g., '/node/article').
@@ -260,5 +244,210 @@ export class NodeHiveClient {
             console.error(error);
         }
     }
+
+
+
+    /**
+     * Stores the current user's token and details in a cookie.
+     *
+     * @param {string} token
+     * @param {object} userDetails
+     */
+    storeUserDetails(token, userDetails) {
+        document.cookie = `userToken=${token}; path=/; max-age=31536000; SameSite=None; Secure`; // 86400 seconds = 1 day
+        document.cookie = `userDetails=${JSON.stringify(
+            userDetails
+        )}; path=/; max-age=31536000; SameSite=None; Secure`;
+    }
+
+    /**
+     * Clears the current user's token and details from cookies.
+     */
+    clearUserDetails() {
+        document.cookie = 'userToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'userDetails=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+
+    /**
+     * Retrieves the stored token from cookies.
+     *
+     * @return {string|null}
+     */
+    getToken() {
+        return this.getCookie('userToken');
+    }
+
+    /**
+     * Retrieves the stored user details from cookies.
+     *
+     * @return {object|null}
+     */
+    getUserDetails() {
+        const userDetails = this.getCookie('userDetails');
+        return userDetails ? JSON.parse(userDetails) : null;
+    }
+
+    /**
+     * Utility function to get a cookie by name.
+     *
+     * @param {string} name
+     * @return {string|null}
+     */
+    getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    /**
+     * Login user and store token and details.
+     *
+     * @param {string} email
+     * @param {string} password
+     * @return {Promise}
+     */
+    async login(email, password) {
+        try {
+            const loginData = Buffer.from(`${email}:${password}`).toString('base64');
+            const response = await fetch(
+                this.baseUrl+`/jwt/token?_format=json`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Basic ${loginData}`,
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('JWT Token:', data.token);
+
+                this.storeUserDetails(data.token, { email }); // Assuming email as user detail for simplicity
+
+                // Fetch additional user details
+                const userDetails = await this.fetchUserDetails(data.token);
+                console.log(userDetails);
+                this.storeUserDetails(data.token, userDetails); // Store all user details
+
+                return true;
+            } else {
+                throw new Error('Unknown username or bad password');
+            }
+        } catch (e) {
+            throw new Error(e.message);
+        }
+    }
+
+    /**
+     * Logout user by clearing stored token and details.
+     */
+    logout() {
+        this.clearUserDetails();
+    }
+
+    isLoggedIn() {
+        const token = this.getCookie('userToken');
+        return !!token; // Returns true if token exists, false otherwise
+    }
+
+    async fetchUserDetails(token) {
+        // Decode JWT and log the data
+        const decodedJwt = this.decodeJwt(token);
+        console.log('Decoded JWT Data:', decodedJwt.drupal.uid);
+
+        const response = await fetch(
+            this.baseUrl+`/user/` +
+            decodedJwt.drupal.uid +
+            `?_format=json`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        if (response.ok) {
+            console.log(response)
+            return await response.json();
+        } else {
+            // Handle errors or return default values
+            return {};
+        }
+    }
+
+    /**
+     * Check if user is logged in and has a valid session.
+     *
+     * @return {Promise<boolean>}
+     */
+    async hasValidSession() {
+        try {
+            const token = this.getToken();
+            if (!token) return false;
+
+            const sessionActive = await fetch(
+                this.baseUrl+`/user/login_status?_format=json`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const sessionData = await sessionActive.json();
+            return sessionData === 1;
+        } catch (e) {
+            throw new Error(e.message);
+        }
+    }
+
+    decodeJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split('')
+                    .map(function (c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    })
+                    .join('')
+            );
+
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            console.error('Error decoding JWT', e);
+            return null;
+        }
+    }
+
+    /**
+     * Checks user role and permissions.
+     *
+     * @param {string} role
+     * @return {boolean}
+     */
+    hasRole(role) {
+        const userDetails = this.getUserDetails();
+        // Implement role checking logic here based on your application's requirements
+        // Example: return userDetails?.role === role;
+    }
+
+    getAllCookieData() {
+        const cookies = document.cookie.split('; ');
+        const cookieData = {};
+        cookies.forEach((cookie) => {
+            const [key, value] = cookie.split('=');
+            cookieData[key] = value;
+        });
+        return cookieData;
+    }
+
 
 }

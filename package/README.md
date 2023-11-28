@@ -1,11 +1,11 @@
 # nodehive-js
-JavaScript client library for NodeHive headless CMS
+JavaScript client library for NodeHive Headless CMS
 
 ## Note
-This is a very early prototype and very likely break.
+This is a very early prototype.
 
 ## Roadmap
-We are working on a MVP which allows frontend developers to start using NodeHive in a matter of minutes.
+We are working on a MVP which allows frontend developers to start using NodeHive projects in a matter of minutes.
 
 We are currently focusing on
 
