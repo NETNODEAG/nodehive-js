@@ -10,7 +10,7 @@ export default function NodePage({ node }: NodePageProps) {
   const title = node.title;
   const paragraphs = node.field_paragraphs;
 
-  console.log(paragraphs)
+  //console.log(paragraphs)
   const stringifiedEntity = JSON.stringify(node, null, 2);
   return (
     <article data-node-type="Page" className="container mx-auto">

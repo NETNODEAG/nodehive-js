@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { NodeHiveClient } from '../../../../package/src/NodeHiveClient';
+import { NodeHiveClient } from 'nodehive-js';
 
 
 export default function VisualEditor() {
@@ -137,9 +137,9 @@ export default function VisualEditor() {
 
   return (
     <div className="fixed bottom-8 left-1/2">
-      <div className="w-24 -translate-x-1/2 rounded-tl-lg  rounded-tr-lg bg-zinc-700 px-4 py-1 text-center text-[8px] font-bold text-white">
+      {/*<div className="w-24 -translate-x-1/2 rounded-tl-lg  rounded-tr-lg bg-zinc-700 px-4 py-1 text-center text-[8px] font-bold text-white">
         NodeHive
-      </div>
+  </div>*/}
       <div className="-translate-x-1/2 rounded-full bg-zinc-700 p-3">
         <div className="flex gap-2">
           {/* User Profile Picture */}

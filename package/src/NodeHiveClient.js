@@ -6,8 +6,8 @@ import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
  */
 export class NodeHiveClient {
     baseUrl;
-    config;
-
+    nodehiveconfig;
+    options;
 
     /**
      * Instantiates a new NodeHive client.
@@ -17,14 +17,15 @@ export class NodeHiveClient {
      * @param {baseUrl} baseUrl The baseUrl of your Drupal site.
      * @param {options} options Options for the client.
      */
-    constructor(baseUrl, config, options = {}) {
+    constructor(baseUrl, nodehiveconfig = {}, options = {}) {
         if (!baseUrl || typeof baseUrl !== "string") {
             throw new Error("The 'baseUrl' param is required.");
         }
         this.baseUrl = baseUrl;
+        this.nodehiveconfig = nodehiveconfig;
         this.options = options;
-        this.config = config;
     }
+
 
     /**
      * Makes a request to the Drupal JSON:API.
@@ -42,19 +43,27 @@ export class NodeHiveClient {
             'Content-Type': 'application/vnd.api+json',
             ...additionalHeaders
         };
+        console.log(this.options);
+        if (this.options.auth) {
+            headers['Authorization'] = `Bearer ${this.options.auth}`;
+        }
 
         const config = {
             method,
             headers,
             credentials: 'same-origin',
-            next: { revalidate: 0 },
+            next: { revalidate: 1 },
             cache: 'no-store'
             //cache: 'force-cache'
         };
 
+
+
         if (data) {
             config.body = JSON.stringify(data);
         }
+
+        //console.log('config:', config);
 
         try {
             const response = await fetch(url, config);
@@ -139,8 +148,8 @@ export class NodeHiveClient {
 
             let queryString = '';
 
-            if (this.config?.entities[contentType]) {
-                this.config.nodes.contentType.include.forEach((item) => {
+            if (this.nodehiveconfig?.entities[contentType]) {
+                this.nodehiveconfig.nodes.contentType.include.forEach((item) => {
                     console.log('addinclude', item)
                     params.addInclude(item.value)
                 });
@@ -173,26 +182,26 @@ export class NodeHiveClient {
 
         const type = 'node-' + contentType;
 
-        if (this.config.entities[type]) {
+        if (this.nodehiveconfig.entities[type]) {
             // If 'addFilter' property exists, iterate over its items
-            if (this.config.entities[type].addFilter) {
-                this.config.entities[type].addFilter.forEach(field => {
+            if (this.nodehiveconfig.entities[type].addFilter) {
+                this.nodehiveconfig.entities[type].addFilter.forEach(field => {
                     //console.log('addField', field);
                     params.addFilter('status', 1)
                 });
             }
 
             // If 'addFields' property exists, iterate over its items
-            if (this.config.entities[type].addFields) {
-                this.config.entities[type].addFields.forEach(field => {
+            if (this.nodehiveconfig.entities[type].addFields) {
+                this.nodehiveconfig.entities[type].addFields.forEach(field => {
                     //console.log('addField', field);
                     params.addFields(type, [field])
                 });
             }
 
             // If 'addInclude' property exists, iterate over its items
-            if (this.config.entities[type].addInclude) {
-                this.config.entities[type].addInclude.forEach(include => {
+            if (this.nodehiveconfig.entities[type].addInclude) {
+                this.nodehiveconfig.entities[type].addInclude.forEach(include => {
                     console.log('addInclude', include);
                     params.addInclude([include])
                 });
@@ -236,7 +245,7 @@ export class NodeHiveClient {
 
         try {
             const response = await this.router(slug)
-            console.log('buuu', response)
+            //console.log('Response getResourceBySlug', response)
 
             const response2 = await this.getNode(response.entity.uuid, response.entity.bundle, lang)
             return response2
@@ -311,7 +320,7 @@ export class NodeHiveClient {
         try {
             const loginData = Buffer.from(`${email}:${password}`).toString('base64');
             const response = await fetch(
-                this.baseUrl+`/jwt/token?_format=json`,
+                this.baseUrl + `/jwt/token?_format=json`,
                 {
                     method: 'GET',
                     headers: {
@@ -359,7 +368,7 @@ export class NodeHiveClient {
         console.log('Decoded JWT Data:', decodedJwt.drupal.uid);
 
         const response = await fetch(
-            this.baseUrl+`/user/` +
+            this.baseUrl + `/user/` +
             decodedJwt.drupal.uid +
             `?_format=json`,
             {
@@ -390,7 +399,7 @@ export class NodeHiveClient {
             if (!token) return false;
 
             const sessionActive = await fetch(
-                this.baseUrl+`/user/login_status?_format=json`,
+                this.baseUrl + `/user/login_status?_format=json`,
                 {
                     method: 'GET',
                     headers: {

@@ -17,6 +17,7 @@
     "drupal-jsonapi-params": "^2.2.0",
     "next": "^13.4.8",
     "next-drupal": "^1.6.0",
+    "nodehive-js": "^1.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^1.13.2"
