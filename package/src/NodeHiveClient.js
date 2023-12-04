@@ -38,8 +38,7 @@ export class NodeHiveClient {
      */
     async request(endpoint, method = 'GET', data = null, additionalHeaders = {}) {
         const url = `${this.baseUrl}${endpoint}`;
-        console.log('miauuuu');
-        console.log(url);
+        console.log('DEBUG URL', url);
         const headers = {
             'Content-Type': 'application/vnd.api+json',
             ...additionalHeaders
