@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { NodeHiveClient } from 'nodehive-js';
+import { NodeHiveClient } from '../../NodeHiveClient';
 
 export function LoginForm() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -55,7 +53,6 @@ export function LoginForm() {
   async function handleLogout() {
     client.logout();
     setIsLoggedIn(false);
-    //router.push('/'); // #todo or route to a specific 'logged out' page if you have one
   }
 
   if (loading) {

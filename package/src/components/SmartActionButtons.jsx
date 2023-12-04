@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { NodeHiveClient } from 'nodehive-js';
+import { NodeHiveClient } from '../NodeHiveClient';
 
 export function SmartActionButtons() {
-  const router = useRouter();
+  
   const [isInIframe, setIsInIframe] = useState(false);
   const [userProfilePic, setUserProfilePic] = useState('');
 
@@ -316,7 +315,7 @@ export function SmartActionButtons() {
           </div>
         </div>
         <div className="w-24 -translate-x-1/2 rounded-bl-lg  rounded-br-lg bg-zinc-700 px-4 py-1 text-center text-[8px] font-bold text-white">
-          Smart Actions
+          Smart Actions!
         </div>
       </div>
     </>

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { NodeHiveClient } from 'nodehive-js';
+import { NodeHiveClient } from '../../NodeHiveClient';
 
 
 export function AuthWrapper({ children }) {
@@ -20,6 +20,10 @@ export function AuthWrapper({ children }) {
     return null;
   }
 
-  return (<>{children}</>);
+  return (
+    <>
+      {children}
+    </>
+  )
 }
 
