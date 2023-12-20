@@ -38,12 +38,10 @@ export class NodeHiveClient {
      */
     async request(endpoint, method = 'GET', data = null, additionalHeaders = {}) {
         const url = `${this.baseUrl}${endpoint}`;
-        console.log('DEBUG URL', url);
         const headers = {
             'Content-Type': 'application/vnd.api+json',
             ...additionalHeaders
         };
-        console.log('mytoken', this.options.token);
         if (this.options.token) {
             headers['Authorization'] = `Bearer ${this.options.token}`;
         }
@@ -53,25 +51,17 @@ export class NodeHiveClient {
             headers,
             //credentials: 'same-origin',
             next: { revalidate: 1 },
-            cache: 'no-store'
             //cache: 'force-cache'
         };
-
-        console.log('config', config)
-
-
 
         if (data) {
             config.body = JSON.stringify(data);
         }
 
-        //console.log('config:', config);
-
         try {
             const response = await fetch(url, config);
             if (!response.ok) {
                 const response_body = await response.json()
-                console.log('Response Body', response_body)
                 throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
             }
             return await response.json();
@@ -138,6 +128,35 @@ export class NodeHiveClient {
         return this.request(endpoint, 'GET');
     }
 
+
+    /**
+     * Applies the configuration to the params object.
+     * @param {Params} params - The params object to apply the configuration to.
+     * @param {TypeConfig} typeConfig - The configuration object containing filters, fields, and includes.
+     */
+    applyConfigToParams(params, typeConfig) {
+        if (!typeConfig) return;
+
+        if (typeConfig.addFilter) {
+            typeConfig.addFilter.forEach(filter => {
+                params.addFilter(filter)
+            });
+        }
+
+        if (typeConfig.addFields) {
+            typeConfig.addFields.forEach(field => {
+                params.addFields(typeConfig.entityType, [field])
+            });
+        }
+
+        if (typeConfig.addInclude) {
+            typeConfig.addInclude.forEach(include => {
+                params.addInclude([include])
+            });
+        }
+    }
+
+
     /**
      * Retrieves a list of nodes from the Drupal JSON:API.
      * @param {string} contentType - The content type to interact with.
@@ -151,21 +170,18 @@ export class NodeHiveClient {
             }
 
             let queryString = '';
+            const type = 'node-' + contentType;
+            const typeConfig = this.nodehiveconfig.entities[type];
 
-            if (this.nodehiveconfig?.entities[contentType]) {
-                this.nodehiveconfig.nodes.contentType.include.forEach((item) => {
-                    console.log('addinclude', item)
-                    params.addInclude(item.value)
-                });
-            }
+            this.applyConfigToParams(params, typeConfig);
 
             if (params instanceof DrupalJsonApiParams) {
                 queryString = '?' + buildQueryString(params);
             }
 
             const url = lang
-                ? `/${lang}/jsonapi/node/${contentType}${queryString}`
-                : `/jsonapi/node/${contentType}${queryString}`;
+                ? `/${lang}/jsonapi/node/${contentType}${queryString}&jsonapi_include=1`
+                : `/jsonapi/node/${contentType}${queryString}&jsonapi_include=1`;
 
             return await this.request(url, 'GET');
         } catch (error) {
@@ -181,42 +197,17 @@ export class NodeHiveClient {
      * @returns {Promise<any>} - A Promise that resolves to the node data.
      */
     async getNode(uuid, contentType, lang = null, params = new DrupalJsonApiParams()) {
-        // Initialize an empty query string
-        let queryString = '';
-
-        const type = 'node-' + contentType;
-
-        if (this.nodehiveconfig.entities[type]) {
-            // If 'addFilter' property exists, iterate over its items
-            if (this.nodehiveconfig.entities[type].addFilter) {
-                this.nodehiveconfig.entities[type].addFilter.forEach(field => {
-                    //console.log('addField', field);
-                    params.addFilter('status', 1)
-                });
-            }
-
-            // If 'addFields' property exists, iterate over its items
-            if (this.nodehiveconfig.entities[type].addFields) {
-                this.nodehiveconfig.entities[type].addFields.forEach(field => {
-                    //console.log('addField', field);
-                    params.addFields(type, [field])
-                });
-            }
-
-            // If 'addInclude' property exists, iterate over its items
-            if (this.nodehiveconfig.entities[type].addInclude) {
-                this.nodehiveconfig.entities[type].addInclude.forEach(include => {
-                    console.log('addInclude', include);
-                    params.addInclude([include])
-                });
-            }
+        if (!contentType || typeof contentType !== 'string') {
+            throw new Error('Invalid content type');
         }
 
+        let queryString = '';
+        const type = 'node-' + contentType;
+        const typeConfig = this.nodehiveconfig.entities[type];
 
-
+        this.applyConfigToParams(params, typeConfig);
 
         queryString = '?' + params.getQueryString({ encode: false });
-
 
         // Construct the endpoint URL using the node UUID and content type
         const endpoint = `/jsonapi/node/${contentType}/${uuid}${queryString}&jsonapi_include=1`;
@@ -249,8 +240,6 @@ export class NodeHiveClient {
 
         try {
             const response = await this.router(slug)
-            console.log('Response getResourceBySlug', response)
-
             const response2 = await this.getNode(response.entity.uuid, response.entity.bundle, lang)
             return response2
         } catch (error) {
@@ -336,13 +325,10 @@ export class NodeHiveClient {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('JWT Token:', data.token);
-
                 this.storeUserDetails(data.token, { email }); // Assuming email as user detail for simplicity
 
                 // Fetch additional user details
-                const userDetails = await this.fetchUserDetails(data.token);
-                console.log(userDetails);
+                const userDetails = await this.fetchUserDetails(data.token);;
                 this.storeUserDetails(data.token, userDetails); // Store all user details
 
                 return true;
@@ -369,7 +355,6 @@ export class NodeHiveClient {
     async fetchUserDetails(token) {
         // Decode JWT and log the data
         const decodedJwt = this.decodeJwt(token);
-        console.log('Decoded JWT Data:', decodedJwt.drupal.uid);
 
         const response = await fetch(
             this.baseUrl + `/user/` +
@@ -384,7 +369,6 @@ export class NodeHiveClient {
         );
 
         if (response.ok) {
-            console.log(response)
             return await response.json();
         } else {
             // Handle errors or return default values
