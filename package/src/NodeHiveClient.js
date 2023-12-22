@@ -1,5 +1,5 @@
-import { buildQueryString } from './utils.js';
-import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
+import { buildQueryString } from "./utils.js";
+import { DrupalJsonApiParams } from "drupal-jsonapi-params";
 
 /**
  * This class provides methods to interact with a NodeHive/Drupal JSON:API.
@@ -26,7 +26,6 @@ export class NodeHiveClient {
         this.options = options;
     }
 
-
     /**
      * Makes a request to the Drupal JSON:API.
      * @param {string} endpoint - The API endpoint (e.g., '/node/article').
@@ -36,14 +35,14 @@ export class NodeHiveClient {
      * @returns {Promise<any>} - The JSON response from the API.
      * @throws Will throw an error if the request fails.
      */
-    async request(endpoint, method = 'GET', data = null, additionalHeaders = {}) {
+    async request(endpoint, method = "GET", data = null, additionalHeaders = {}) {
         const url = `${this.baseUrl}${endpoint}`;
         const headers = {
-            'Content-Type': 'application/vnd.api+json',
-            ...additionalHeaders
+            "Content-Type": "application/vnd.api+json",
+            ...additionalHeaders,
         };
         if (this.options.token) {
-            headers['Authorization'] = `Bearer ${this.options.token}`;
+            headers["Authorization"] = `Bearer ${this.options.token}`;
         }
 
         const config = {
@@ -61,12 +60,14 @@ export class NodeHiveClient {
         try {
             const response = await fetch(url, config);
             if (!response.ok) {
-                const response_body = await response.json()
-                throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+                const response_body = await response.json();
+                throw new Error(
+                    `HTTP error! status: ${response.status} - ${response.statusText}`,
+                );
             }
             return await response.json();
         } catch (error) {
-            console.error('Request failed', error);
+            console.error("Request failed", error);
             throw error;
         }
     }
@@ -80,7 +81,7 @@ export class NodeHiveClient {
         const endpoint = `/jsonapi/node_type/node_type`;
 
         // Make the GET request to the Drupal JSON:API
-        return this.request(endpoint, 'GET');
+        return this.request(endpoint, "GET");
     }
 
     /**
@@ -92,7 +93,7 @@ export class NodeHiveClient {
         const endpoint = `/jsonapi/menu/menu`;
 
         // Make the GET request to the Drupal JSON:API
-        return this.request(endpoint, 'GET');
+        return this.request(endpoint, "GET");
     }
 
     /**
@@ -106,17 +107,17 @@ export class NodeHiveClient {
         const apiParams = new DrupalJsonApiParams();
 
         apiParams
-            .addFilter('status', '1')
-            .addFields('menu_link_content--menu_link_content', [
-                'title',
-                'url',
-                'enabled',
-                'menu_name',
-                'external',
-                'options',
-                'weight',
-                'expanded',
-                'parent',
+            .addFilter("status", "1")
+            .addFields("menu_link_content--menu_link_content", [
+                "title",
+                "url",
+                "enabled",
+                "menu_name",
+                "external",
+                "options",
+                "weight",
+                "expanded",
+                "parent",
             ])
             .getQueryObject();
 
@@ -125,37 +126,35 @@ export class NodeHiveClient {
         const endpoint = `/jsonapi/menu_items/${menuId}?${queryString}&jsonapi_include=1`;
 
         // Make the GET request to the Drupal JSON:API
-        return this.request(endpoint, 'GET');
+        return this.request(endpoint, "GET");
     }
-
 
     /**
      * Applies the configuration to the params object.
      * @param {Params} params - The params object to apply the configuration to.
      * @param {TypeConfig} typeConfig - The configuration object containing filters, fields, and includes.
      */
-    applyConfigToParams(params, typeConfig) {
+    applyConfigToParams(params, typeConfig, type) {
         if (!typeConfig) return;
 
         if (typeConfig.addFilter) {
-            typeConfig.addFilter.forEach(filter => {
-                params.addFilter(filter)
+            typeConfig.addFilter.forEach((filter) => {
+                params.addFilter(filter);
             });
         }
 
         if (typeConfig.addFields) {
-            typeConfig.addFields.forEach(field => {
-                params.addFields(typeConfig.entityType, [field])
+            typeConfig.addFields.forEach((field) => {
+                params.addFields(type, [field]);
             });
         }
 
         if (typeConfig.addInclude) {
-            typeConfig.addInclude.forEach(include => {
-                params.addInclude([include])
+            typeConfig.addInclude.forEach((include) => {
+                params.addInclude([include]);
             });
         }
     }
-
 
     /**
      * Retrieves a list of nodes from the Drupal JSON:API.
@@ -165,27 +164,27 @@ export class NodeHiveClient {
      */
     async getNodes(contentType, lang = null, params = new DrupalJsonApiParams()) {
         try {
-            if (!contentType || typeof contentType !== 'string') {
-                throw new Error('Invalid content type');
+            if (!contentType || typeof contentType !== "string") {
+                throw new Error("Invalid content type");
             }
 
-            let queryString = '';
-            const type = 'node-' + contentType;
+            let queryString = "";
+            const type = "node-" + contentType;
             const typeConfig = this.nodehiveconfig.entities[type];
 
-            this.applyConfigToParams(params, typeConfig);
+            this.applyConfigToParams(params, typeConfig, type);
 
             if (params instanceof DrupalJsonApiParams) {
-                queryString = '?' + buildQueryString(params);
+                queryString = "?" + buildQueryString(params);
             }
 
             const url = lang
                 ? `/${lang}/jsonapi/node/${contentType}${queryString}&jsonapi_include=1`
                 : `/jsonapi/node/${contentType}${queryString}&jsonapi_include=1`;
 
-            return await this.request(url, 'GET');
+            return await this.request(url, "GET");
         } catch (error) {
-            console.error('Error in getNodes:', error);
+            console.error("Error in getNodes:", error);
         }
     }
 
@@ -196,37 +195,82 @@ export class NodeHiveClient {
      * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
      * @returns {Promise<any>} - A Promise that resolves to the node data.
      */
-    async getNode(uuid, contentType, lang = null, params = new DrupalJsonApiParams()) {
-        if (!contentType || typeof contentType !== 'string') {
-            throw new Error('Invalid content type');
+    async getNode(
+        uuid,
+        contentType,
+        lang = null,
+        params = new DrupalJsonApiParams(),
+    ) {
+        if (!contentType || typeof contentType !== "string") {
+            throw new Error("Invalid content type");
         }
 
-        let queryString = '';
-        const type = 'node-' + contentType;
+        let queryString = "";
+        const type = "node-" + contentType;
         const typeConfig = this.nodehiveconfig.entities[type];
 
-        this.applyConfigToParams(params, typeConfig);
+        this.applyConfigToParams(params, typeConfig, type);
 
-        queryString = '?' + params.getQueryString({ encode: false });
+        queryString = "?" + params.getQueryString({ encode: false });
 
         // Construct the endpoint URL using the node UUID and content type
         const endpoint = `/jsonapi/node/${contentType}/${uuid}${queryString}&jsonapi_include=1`;
 
         if (lang) {
-            return this.request(`/${lang}${endpoint}`, 'GET');
+            return this.request(`/${lang}${endpoint}`, "GET");
         }
 
-        return this.request(endpoint, 'GET');
+        return this.request(endpoint, "GET");
+    }
+
+    /**
+     * Retrieves a specific paragraph by its ID from the Drupal JSON:API.
+     * @param {string} paragraphId - The unique identifier for the paragraph.
+     * @param {string} paragraphType - The paragraph type (e.g., 'paragraph--p_accordions').
+     * @param {string} [lang=null] - Optional language parameter.
+     * @param {DrupalJsonApiParams} [params=new DrupalJsonApiParams()] - Optional DrupalJsonApiParams to customize the query.
+     * @returns {Promise<any>} - A Promise that resolves to the paragraph data.
+     */
+    async getParagraph(
+        uuid,
+        paragraphType,
+        lang = null,
+        params = new DrupalJsonApiParams(),
+    ) {
+        try {
+            // Check for valid paragraph type
+            if (!paragraphType || typeof paragraphType !== "string") {
+                throw new Error("Invalid paragraph type");
+            }
+
+            // Apply type configuration
+            const type = "paragraph-" + paragraphType;
+            const typeConfig = this.nodehiveconfig.entities[type];
+            this.applyConfigToParams(params, typeConfig, type);
+
+            const queryString = params.getQueryString();
+
+            let endpoint = `/jsonapi/paragraph/${paragraphType}/${uuid}?${queryString}`;
+
+            // Append language if provided
+            if (lang) {
+                endpoint = `/${lang}${endpoint}`;
+            }
+
+            return await this.request(endpoint, "GET");
+        } catch (error) {
+            console.error("Error in getParagraph:", error);
+        }
     }
 
     async router(slug, lang = null) {
         // Build the JSON API URL based on the slug array
-        const jsonApiUrl = '/router/translate-path?path=' + slug + '/?format=json_api';
+        const jsonApiUrl =
+            "/router/translate-path?path=" + slug + "/?format=json_api";
 
         try {
             // Fetch the data from the API URL
             return this.request(jsonApiUrl.toString());
-
         } catch (error) {
             // Log the error
             console.error(error);
@@ -237,17 +281,18 @@ export class NodeHiveClient {
     }
 
     async getResourceBySlug(slug, lang = null) {
-
         try {
-            const response = await this.router(slug)
-            const response2 = await this.getNode(response.entity.uuid, response.entity.bundle, lang)
-            return response2
+            const response = await this.router(slug);
+            const response2 = await this.getNode(
+                response.entity.uuid,
+                response.entity.bundle,
+                lang,
+            );
+            return response2;
         } catch (error) {
             console.error(error);
         }
     }
-
-
 
     /**
      * Stores the current user's token and details in a cookie.
@@ -258,7 +303,7 @@ export class NodeHiveClient {
     storeUserDetails(token, userDetails) {
         document.cookie = `userToken=${token}; path=/; max-age=31536000; SameSite=None; Secure`; // 86400 seconds = 1 day
         document.cookie = `userDetails=${JSON.stringify(
-            userDetails
+            userDetails,
         )}; path=/; max-age=31536000; SameSite=None; Secure`;
     }
 
@@ -266,8 +311,10 @@ export class NodeHiveClient {
      * Clears the current user's token and details from cookies.
      */
     clearUserDetails() {
-        document.cookie = 'userToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'userDetails=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie =
+            "userToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie =
+            "userDetails=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
 
     /**
@@ -276,7 +323,7 @@ export class NodeHiveClient {
      * @return {string|null}
      */
     getToken() {
-        return this.getCookie('userToken');
+        return this.getCookie("userToken");
     }
 
     /**
@@ -285,7 +332,7 @@ export class NodeHiveClient {
      * @return {object|null}
      */
     getUserDetails() {
-        const userDetails = this.getCookie('userDetails');
+        const userDetails = this.getCookie("userDetails");
         return userDetails ? JSON.parse(userDetails) : null;
     }
 
@@ -298,7 +345,7 @@ export class NodeHiveClient {
     getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+        if (parts.length === 2) return parts.pop().split(";").shift();
         return null;
     }
 
@@ -311,29 +358,26 @@ export class NodeHiveClient {
      */
     async login(email, password) {
         try {
-            const loginData = Buffer.from(`${email}:${password}`).toString('base64');
-            const response = await fetch(
-                this.baseUrl + `/jwt/token?_format=json`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Basic ${loginData}`,
-                    },
-                }
-            );
+            const loginData = Buffer.from(`${email}:${password}`).toString("base64");
+            const response = await fetch(this.baseUrl + `/jwt/token?_format=json`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Basic ${loginData}`,
+                },
+            });
 
             if (response.ok) {
                 const data = await response.json();
                 this.storeUserDetails(data.token, { email }); // Assuming email as user detail for simplicity
 
                 // Fetch additional user details
-                const userDetails = await this.fetchUserDetails(data.token);;
+                const userDetails = await this.fetchUserDetails(data.token);
                 this.storeUserDetails(data.token, userDetails); // Store all user details
 
                 return true;
             } else {
-                throw new Error('Unknown username or bad password');
+                throw new Error("Unknown username or bad password");
             }
         } catch (e) {
             throw new Error(e.message);
@@ -348,7 +392,7 @@ export class NodeHiveClient {
     }
 
     isLoggedIn() {
-        const token = this.getCookie('userToken');
+        const token = this.getCookie("userToken");
         return !!token; // Returns true if token exists, false otherwise
     }
 
@@ -357,15 +401,13 @@ export class NodeHiveClient {
         const decodedJwt = this.decodeJwt(token);
 
         const response = await fetch(
-            this.baseUrl + `/user/` +
-            decodedJwt.drupal.uid +
-            `?_format=json`,
+            this.baseUrl + `/user/` + decodedJwt.drupal.uid + `?_format=json`,
             {
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-            }
+            },
         );
 
         if (response.ok) {
@@ -389,12 +431,12 @@ export class NodeHiveClient {
             const sessionActive = await fetch(
                 this.baseUrl + `/user/login_status?_format=json`,
                 {
-                    method: 'GET',
+                    method: "GET",
                     headers: {
-                        'Content-Type': 'application/json',
+                        "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                }
+                },
             );
 
             const sessionData = await sessionActive.json();
@@ -406,20 +448,20 @@ export class NodeHiveClient {
 
     decodeJwt(token) {
         try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
             const jsonPayload = decodeURIComponent(
                 atob(base64)
-                    .split('')
+                    .split("")
                     .map(function (c) {
-                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
                     })
-                    .join('')
+                    .join(""),
             );
 
             return JSON.parse(jsonPayload);
         } catch (e) {
-            console.error('Error decoding JWT', e);
+            console.error("Error decoding JWT", e);
             return null;
         }
     }
@@ -437,14 +479,12 @@ export class NodeHiveClient {
     }
 
     getAllCookieData() {
-        const cookies = document.cookie.split('; ');
+        const cookies = document.cookie.split("; ");
         const cookieData = {};
         cookies.forEach((cookie) => {
-            const [key, value] = cookie.split('=');
+            const [key, value] = cookie.split("=");
             cookieData[key] = value;
         });
         return cookieData;
     }
-
-
 }
