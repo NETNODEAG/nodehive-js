@@ -224,6 +224,39 @@ export class NodeHiveClient {
     }
 
     /**
+     * Retrieves a single fragment by its UUID from the Drupal JSON:API.
+     * @param {string} uuid - The unique identifier for the fragment.
+     * @param {string} fragmentType - The fragment type of the fragment.
+     * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
+     * @returns {Promise<any>} - A Promise that resolves to the node data.
+     */
+    async getFragment(
+        uuid,
+        fragmentType,
+        lang = null,
+        params = new DrupalJsonApiParams()
+    ) {
+      
+
+        let queryString = "";
+        const type = "nodehive_fragment-" + fragmentType;
+        const typeConfig = this.nodehiveconfig.entities[type];
+
+        //this.applyConfigToParams(params, typeConfig, type);
+
+        //queryString = "?" + params.getQueryString({ encode: false });
+
+        // Construct the endpoint URL using the node UUID and content type
+        const endpoint = `/jsonapi/nodehive_fragment/${fragmentType}/${uuid}${queryString}&jsonapi_include=1`;
+
+        if (lang) {
+            return this.request(`/${lang}${endpoint}`, "GET");
+        }
+
+        return this.request(endpoint, "GET");
+    }
+
+    /**
      * Retrieves a specific paragraph by its ID from the Drupal JSON:API.
      * @param {string} paragraphId - The unique identifier for the paragraph.
      * @param {string} paragraphType - The paragraph type (e.g., 'paragraph--p_accordions').
@@ -265,12 +298,13 @@ export class NodeHiveClient {
 
     async router(slug, lang = null) {
         // Build the JSON API URL based on the slug array
-        const jsonApiUrl =
-            "/router/translate-path?path=" + slug + "/?format=json_api";
+      const jsonApiUrl = '/router/translate-path?path=' + slug + '/?format=json_api';
+      const url = lang ? `/${lang}${jsonApiUrl}` : jsonApiUrl;
 
         try {
             // Fetch the data from the API URL
-            return this.request(jsonApiUrl.toString());
+            return this.request(url.toString());
+
         } catch (error) {
             // Log the error
             console.error(error);
