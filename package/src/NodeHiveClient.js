@@ -242,12 +242,33 @@ export class NodeHiveClient {
         const type = "nodehive_fragment-" + fragmentType;
         const typeConfig = this.nodehiveconfig.entities[type];
 
-        //this.applyConfigToParams(params, typeConfig, type);
+        this.applyConfigToParams(params, typeConfig, type);
 
-        //queryString = "?" + params.getQueryString({ encode: false });
+        queryString = "?" + params.getQueryString({ encode: false });
 
         // Construct the endpoint URL using the node UUID and content type
         const endpoint = `/jsonapi/nodehive_fragment/${fragmentType}/${uuid}${queryString}&jsonapi_include=1`;
+
+        if (lang) {
+            return this.request(`/${lang}${endpoint}`, "GET");
+        }
+
+        return this.request(endpoint, "GET");
+    }
+
+    /**
+     * Retrieves a single area with its fragments by its UUID from the Drupal JSON:API.
+     * @param {string} uuid - The unique identifier for the area.
+     * @returns {Promise<any>} - A Promise that resolves to the node data.
+     */
+    async getArea(
+        uuid,
+        lang = null
+    ) {
+ 
+
+        // Construct the endpoint URL using the node UUID and content type
+        const endpoint = `/jsonapi/nodehive_area/nodehive_area/${uuid}?&jsonapi_include=1&include=fragment_id`;
 
         if (lang) {
             return this.request(`/${lang}${endpoint}`, "GET");
