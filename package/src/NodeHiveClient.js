@@ -352,7 +352,7 @@ export class NodeHiveClient {
 
     async getResourceBySlug(slug, lang = null) {
         try {
-            const response = await this.router(slug);
+            const response = await this.router(slug, lang);
             const response2 = await this.getNode(
                 response.entity.uuid,
                 response.entity.bundle,
