@@ -236,7 +236,7 @@ export class NodeHiveClient {
         lang = null,
         params = new DrupalJsonApiParams()
     ) {
-      
+
 
         let queryString = "";
         const type = "nodehive_fragment-" + fragmentType;
@@ -265,7 +265,7 @@ export class NodeHiveClient {
         uuid,
         lang = null
     ) {
- 
+
 
         // Construct the endpoint URL using the node UUID and content type
         const endpoint = `/jsonapi/nodehive_area/nodehive_area/${uuid}?&jsonapi_include=1&include=fragment_id`;
@@ -335,9 +335,24 @@ export class NodeHiveClient {
         }
     }
 
+    /**
+     *
+     * @param {string} slug - the slug of the page to translate
+     * @returns {Promise<any>} - A Promise that resolves to the translated paths e.g. {en: 'path', fr: 'path'}
+     */
+    async getTranslatedPaths(slug) {
+      const apiUrl = '/nodehive/api/translated-paths?path=' + slug;
+      try {
+        return this.request(apiUrl.toString());
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    }
+
     async getResourceBySlug(slug, lang = null) {
         try {
-            const response = await this.router(slug);
+            const response = await this.router(slug, lang);
             const response2 = await this.getNode(
                 response.entity.uuid,
                 response.entity.bundle,
