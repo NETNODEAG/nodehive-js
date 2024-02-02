@@ -239,7 +239,7 @@ export class NodeHiveClient {
 
 
         let queryString = "";
-        const type = "nodehive_fragment-" + fragmentType;
+        const type = "nodehive_fragment--" + fragmentType;
         const typeConfig = this.nodehiveconfig.entities[type];
 
         this.applyConfigToParams(params, typeConfig, type);
