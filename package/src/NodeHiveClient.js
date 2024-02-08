@@ -317,6 +317,56 @@ export class NodeHiveClient {
         }
     }
 
+    /**
+    * Retrieves a specific taxonomy term by its ID from the Drupal JSON:API.
+    * @param {string} termId - The unique identifier for the taxonomy term.
+    * @param {string} vocabularyId - The vocabulary ID of the taxonomy term.
+    * @param {string} [lang=null] - Optional language parameter.
+    * @param {DrupalJsonApiParams} [params=new DrupalJsonApiParams()] - Optional DrupalJsonApiParams to customize the query.
+    * @returns {Promise<any>} - A Promise that resolves to the taxonomy term data.
+    */
+    async getTaxonomyTerm(
+        termId,
+        vocabularyId,
+        lang = null,
+        params = new DrupalJsonApiParams()
+    ) {
+        try {
+        // Check for valid termId and vocabularyId
+        if (
+            !termId ||
+            typeof termId !== 'string' ||
+            !vocabularyId ||
+            typeof vocabularyId !== 'string'
+        ) {
+            throw new Error('Invalid term ID or vocabulary ID');
+        }
+
+        // Apply type configuration if available
+        const type = `taxonomy_term--${vocabularyId}`;
+        const typeConfig = this.nodehiveconfig.entities[type];
+        if (typeConfig) {
+            this.applyConfigToParams(params, typeConfig, type);
+        }
+
+        let queryString = params.getQueryString();
+
+        // Construct the endpoint URL using the taxonomy term ID and vocabulary ID
+        let endpoint = `/jsonapi/taxonomy_term/${vocabularyId}/${termId}?${queryString}`;
+
+        // Append language if provided
+        if (lang) {
+            endpoint = `/${lang}${endpoint}`;
+        }
+
+        // Make the GET request to the Drupal JSON:API
+        return await this.request(endpoint, 'GET');
+        } catch (error) {
+        console.error('Error in getTaxonomyTerm:', error);
+        throw error; // Rethrow the error to be handled by the caller
+        }
+    }
+
     async router(slug, lang = null) {
         // Build the JSON API URL based on the slug array
       const jsonApiUrl = '/router/translate-path?path=' + slug + '/?format=json_api';
