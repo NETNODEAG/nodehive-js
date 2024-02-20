@@ -470,33 +470,35 @@ export class NodeHiveClient {
     }
 
     /**
-     * Auth user and get JWT token
+     * Get a JWT token using the user's email and password.
      *
-     * @param {string} email
-     * @param {string} password
-     * @return {Promise}
+     * @param {string} email - The user's email
+     * @param {string} password - The user's password
+     * @return {Promise} - A Promise that resolves to the JWT token
      */
     async getJWTAccessToken(email, password) {
-        try {
-            const loginData = Buffer.from(`${email}:${password}`).toString("base64");
-            const response = await fetch(this.baseUrl + `/jwt/token?_format=json`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Basic ${loginData}`,
-                },
-            });
+      let data;
+      let error;
 
-            if (response.ok) {
-                const data = await response.json();
-            } else {
-                throw new Error("Unknown username or bad password");
-            }
-        } catch (e) {
-            throw new Error(e.message);
-            error = e?.
-        }
-        return {data, error}
+      const loginData = Buffer.from(`${email}:${password}`).toString("base64");
+
+      const response = await fetch(this.baseUrl + `/jwt/token?_format=json`, {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+              Authorization: `Basic ${loginData}`,
+          },
+      });
+
+      if (!response.ok) {
+        error = "getJWTAccessToken response status: " + response.status;
+      } else {
+        const responseData =  await response.json();
+
+        data = responseData?.token;
+      }
+
+      return { data, error }
     }
 
     /**
