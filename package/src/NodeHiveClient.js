@@ -470,6 +470,36 @@ export class NodeHiveClient {
     }
 
     /**
+     * Auth user and get JWT token
+     *
+     * @param {string} email
+     * @param {string} password
+     * @return {Promise}
+     */
+    async getJWTAccessToken(email, password) {
+        try {
+            const loginData = Buffer.from(`${email}:${password}`).toString("base64");
+            const response = await fetch(this.baseUrl + `/jwt/token?_format=json`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Basic ${loginData}`,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+            } else {
+                throw new Error("Unknown username or bad password");
+            }
+        } catch (e) {
+            throw new Error(e.message);
+            error = e?.
+        }
+        return {data, error}
+    }
+
+    /**
      * Login user and store token and details.
      *
      * @param {string} email
@@ -489,7 +519,7 @@ export class NodeHiveClient {
 
             if (response.ok) {
                 const data = await response.json();
-                this.storeUserDetails(data.token, { email }); // Assuming email as user detail for simplicity
+                this.storeUserDetails(data.token, { email });
 
                 // Fetch additional user details
                 const userDetails = await this.fetchUserDetails(data.token);
