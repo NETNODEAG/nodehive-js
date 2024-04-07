@@ -1,29 +1,29 @@
-// Import necessary types from external libraries if needed
 import { DrupalJsonApiParams } from "drupal-jsonapi-params";
 
-/**
- * Represents the options passed to the NodeHiveClient constructor.
- */
 interface NodeHiveOptions {
     token?: string;
-    // Add other options as necessary
 }
 
-/**
- * Represents the configuration for the NodeHiveClient.
- */
 interface NodeHiveConfig {
-    entities?: any; // Define more specifically based on your configuration structure
+    entities: Record<string, any>; // Consider specifying a more detailed structure
 }
 
-/**
- * Represents a generic API response structure. Adjust according to your actual API response structure.
- */
 interface ApiResponse<T = any> {
     data: T;
-    // Include other standard response properties like 'errors', 'meta', etc., if applicable
+    error?: string;
 }
 
+interface JWTResponseData {
+    token: string;
+    error?: string; // Include error handling based on your implementation
+}
+
+interface UserDetails {
+    uid: string;
+    email: string;
+}
+
+// Extend the module declaration to include missing methods
 declare module 'nodehive-js' {
     export class NodeHiveClient {
         constructor(baseUrl: string, nodehiveconfig?: NodeHiveConfig, options?: NodeHiveOptions);
@@ -31,29 +31,32 @@ declare module 'nodehive-js' {
         request(endpoint: string, method?: string, data?: any, additionalHeaders?: Record<string, string>): Promise<ApiResponse>;
 
         getContentTypes(): Promise<ApiResponse>;
-
         getAvailableMenus(): Promise<ApiResponse>;
-
-        getMenuItems(menuId: string): Promise<ApiResponse>;
-
+        getMenuItems(menuId: string, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getNodes(contentType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
-
         getNode(uuid: string, contentType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
-
         getFragment(uuid: string, fragmentType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
-
         getArea(uuid: string, lang?: string | null): Promise<ApiResponse>;
-
         getParagraph(uuid: string, paragraphType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
-
         getTaxonomyTerm(termId: string, vocabularyId: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
-
         router(slug: string, lang?: string | null): Promise<ApiResponse>;
-
         getTranslatedPaths(slug: string): Promise<ApiResponse>;
-
         getResourceBySlug(slug: string, lang?: string | null): Promise<ApiResponse>;
 
-        // Add other methods as necessary
+        login(email: string, password: string): Promise<boolean>;
+        logout(): void;
+        isLoggedIn(): boolean;
+        hasValidSession(): Promise<boolean>;
+        hasRole(role: string): boolean;
+        storeUserDetails(token: string, userDetails: object): void;
+        clearUserDetails(): void;
+        getToken(): string | null;
+        getUserDetails(): UserDetails | null;
+        getCookie(name: string): string | null;
+        decodeJwt(token: string): any; // Consider specifying a more detailed return type
+        getAllCookieData(): Record<string, string>;
+
+        getJWTAccessToken(email: string, password: string): Promise<ApiResponse<JWTResponseData>>;
+        fetchUserDetails(token: string): Promise<ApiResponse<UserDetails>>;
     }
 }
