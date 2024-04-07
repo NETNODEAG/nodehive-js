@@ -1,12 +1,13 @@
 {
   "name": "nodehive-js",
   "description": "Official JavaScript client library for NodeHive headless CMS",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "type": "module",
   "main": "index.js",
   "types": "types.d.ts",
   "files": [
-    "/src"
+    "/src",
+    "types.d.ts"
   ],
   "repository": {
     "type": "git",
