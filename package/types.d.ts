@@ -13,11 +13,6 @@ interface ApiResponse<T = any> {
     error?: string;
 }
 
-interface JWTResponseData {
-    token: string;
-    error?: string; // Include error handling based on your implementation
-}
-
 interface UserDetails {
     uid: string;
     email: string;
@@ -56,7 +51,7 @@ declare module 'nodehive-js' {
         decodeJwt(token: string): any; // Consider specifying a more detailed return type
         getAllCookieData(): Record<string, string>;
 
-        getJWTAccessToken(email: string, password: string): Promise<JWTResponseData>;
+        getJWTAccessToken(email: string, password: string): Promise<ApiResponse>;
         fetchUserDetails(token: string): Promise<ApiResponse<UserDetails>>;
     }
 }
