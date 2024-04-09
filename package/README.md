@@ -10,8 +10,7 @@ It’s everything you need to run multiple websites, from one backend.
 - docs.nodehive.com - Developer documentation
 
 ## About nodehive-js SDK
-This SDK offers a set of developer helpers to convenietly load data from a NodeHive backend.
-More on 
+The nodehive-js SDK provides a suite of developer tools for easily fetching data from a NodeHive backend.
 
 ## Features
 - TypeScript Support
@@ -25,8 +24,8 @@ More on
 - Login/Logout a User (JWT handling)
 
 ## NextJS Starter for NodeHive Frontend
-The best way to start a frontend for NodeHive frontend is by using our starter template:
-https://github.com/NETNODEAG/nodehive-nextjs-starter
+To begin building a frontend for NodeHive, utilize our starter template available at: https://github.com/NETNODEAG/nodehive-nextjs-starter.
 
 
-
+## Contribute
+If you encounter any issues or have suggestions for enhancements, we invite you to submit a pull request at https://github.com/NETNODEAG/nodehive-js.
