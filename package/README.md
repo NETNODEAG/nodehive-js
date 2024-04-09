@@ -6,8 +6,8 @@ NodeHive headless CMS is a headless composable platform that serves as a your ce
 
 It’s everything you need to run multiple websites, from one backend.
 
-- www.nodehive.com
-- docs.nodehive.com - Developer documentation
+- https://www.nodehive.com
+- https://docs.nodehive.com - Developer documentation
 
 ## About nodehive-js SDK
 The nodehive-js SDK provides a suite of developer tools for easily fetching data from a NodeHive backend.
