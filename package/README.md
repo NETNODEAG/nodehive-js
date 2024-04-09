@@ -1,9 +1,17 @@
 # nodehive-js
-JavaScript client library for NodeHive Headless CMS
+JavaScript client library for NodeHive Headless CMS.
+
+## What is NodeHive?
+NodeHive headless CMS is a headless composable platform that serves as a your central commerce, marketing/communication and customer engagement hub.
+
+It’s everything you need to run multiple websites, from one backend.
+
+- www.nodehive.com
+- docs.nodehive.com - Developer documentation
 
 ## About nodehive-js SDK
 This SDK offers a set of developer helpers to convenietly load data from a NodeHive backend.
-More on docs.nodehive.com
+More on 
 
 ## Features
 - TypeScript Support
@@ -20,9 +28,5 @@ More on docs.nodehive.com
 The best way to start a frontend for NodeHive frontend is by using our starter template:
 https://github.com/NETNODEAG/nodehive-nextjs-starter
 
-## What is NodeHive?
-NodeHive headless CMS is a headless composable platform that serves as a your central commerce, marketing/communication and customer engagement hub.
 
-It’s everything you need to run multiple websites, from one backend.
 
-www.nodehive.com
