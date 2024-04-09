@@ -56,7 +56,7 @@ declare module 'nodehive-js' {
         decodeJwt(token: string): any; // Consider specifying a more detailed return type
         getAllCookieData(): Record<string, string>;
 
-        getJWTAccessToken(email: string, password: string): Promise<ApiResponse<JWTResponseData>>;
+        getJWTAccessToken(email: string, password: string): Promise<JWTResponseData>;
         fetchUserDetails(token: string): Promise<ApiResponse<UserDetails>>;
     }
 }
