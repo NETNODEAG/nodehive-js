@@ -316,6 +316,48 @@ export class NodeHiveClient {
             console.error("Error in getParagraph:", error);
         }
     }
+    
+    /**
+     * Retrieves all taxonomy terms of a specific vocabulary from the Drupal JSON:API.
+     * @param {string} vocabularyId - The vocabulary ID of the taxonomy terms.
+     * @param {string} [lang=null] - Optional language parameter.
+     * @param {DrupalJsonApiParams} [params=new DrupalJsonApiParams()] - Optional parameters to customize the query, such as filters and pagination.
+     * @returns {Promise<any>} - A Promise that resolves to the paragraph data.
+     */
+    async getTaxonomyTerms(vocabularyId, lang = null, params = new DrupalJsonApiParams()) {
+        try {
+            // Check for a valid vocabularyId
+            if (!vocabularyId || typeof vocabularyId !== 'string') {
+                throw new Error('Invalid vocabulary ID');
+            }
+
+            // Apply type configuration if available
+            const type = `taxonomy_term--${vocabularyId}`;
+            const typeConfig = this.nodehiveconfig.entities[type];
+            if (typeConfig) {
+                this.applyConfigToParams(params, typeConfig, type);
+            }
+
+            let queryString = params.getQueryString();
+
+            // Construct the endpoint URL using the vocabulary ID
+            let endpoint = `/jsonapi/taxonomy_term/${vocabularyId}?${queryString}`;
+
+            // Append language if provided
+            if (lang) {
+                endpoint = `/${lang}${endpoint}`;
+            }
+
+            // Make the GET request to the Drupal JSON:API
+            const response = await this.request(endpoint, 'GET');
+            return response.data; // Assuming the JSON:API responds with data in a 'data' key
+        } catch (error) {
+            console.error('Error in getAllTaxonomyTerms:', error);
+            throw error; // Rethrow the error to be handled by the caller
+        }
+    }
+
+    
 
     /**
     * Retrieves a specific taxonomy term by its ID from the Drupal JSON:API.
