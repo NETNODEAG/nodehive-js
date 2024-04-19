@@ -33,6 +33,7 @@ declare module 'nodehive-js' {
         getFragment(uuid: string, fragmentType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getArea(uuid: string, lang?: string | null): Promise<ApiResponse>;
         getParagraph(uuid: string, paragraphType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+        getTaxonomyTerms(vocabularyId: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getTaxonomyTerm(termId: string, vocabularyId: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         router(slug: string, lang?: string | null): Promise<ApiResponse>;
         getTranslatedPaths(slug: string): Promise<ApiResponse>;
