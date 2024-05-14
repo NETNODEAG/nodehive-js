@@ -50,6 +50,7 @@ export class NodeHiveClient {
             headers,
             //credentials: 'same-origin',
             next: { revalidate: 1 },
+            redirect: 'follow',
             //cache: 'force-cache'
         };
 
@@ -445,13 +446,8 @@ export class NodeHiveClient {
     async getResourceBySlug(slug, lang = null) {
         try {
             const response = await this.router(slug, lang);
-    
-            // Check if the response contains a redirection
-            if (response?.redirect && response.redirect.length > 0) {
-                return { redirect: response.redirect };
-            }
-    
-            // If no redirection, fetch the node
+
+            // Check if the response contains a UUID and bundle
             if (response?.entity?.uuid && response.entity.bundle) {
                 const node = await this.getNode(
                     response.entity.uuid,
