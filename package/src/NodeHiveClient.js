@@ -411,7 +411,7 @@ export class NodeHiveClient {
 
     async router(slug, lang = null) {
         // Build the JSON API URL based on the slug array
-      const jsonApiUrl = '/router/translate-path?path=' + slug + '/?format=json_api';
+      const jsonApiUrl = `/router/translate-path?path=/${slug}`;
       const url = lang ? `/${lang}${jsonApiUrl}` : jsonApiUrl;
 
         try {
@@ -445,14 +445,26 @@ export class NodeHiveClient {
     async getResourceBySlug(slug, lang = null) {
         try {
             const response = await this.router(slug, lang);
-            const response2 = await this.getNode(
-                response.entity.uuid,
-                response.entity.bundle,
-                lang,
-            );
-            return response2;
+    
+            // Check if the response contains a redirection
+            if (response?.redirect && response.redirect.length > 0) {
+                return { redirect: response.redirect };
+            }
+    
+            // If no redirection, fetch the node
+            if (response?.entity?.uuid && response.entity.bundle) {
+                const node = await this.getNode(
+                    response.entity.uuid,
+                    response.entity.bundle,
+                    lang,
+                );
+                return node;
+            } else {
+                throw new Error("Resource not found");
+            }
         } catch (error) {
             console.error(error);
+            return null;
         }
     }
 
