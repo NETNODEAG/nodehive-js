@@ -58,6 +58,10 @@ export class NodeHiveClient {
             config.body = JSON.stringify(data);
         }
 
+        if (this.options.debug) {
+            console.log("Requesting URL:", url);
+        }
+
         try {
             const response = await fetch(url, config);
             if (!response.ok) {

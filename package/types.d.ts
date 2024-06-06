@@ -1,6 +1,7 @@
 import { DrupalJsonApiParams } from "drupal-jsonapi-params";
 
 interface NodeHiveOptions {
+    debug?: boolean;
     token?: string;
 }
 
