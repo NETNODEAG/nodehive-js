@@ -59,7 +59,15 @@ export class NodeHiveClient {
         }
 
         if (this.options.debug) {
-            console.log("Requesting URL:", url);
+            if (this.options.debug) {
+                console.log("--- nodehive-js debug ---");
+                console.log("URL:", url);
+                console.log("Config:", JSON.stringify(config, null, 2));
+                if (this.options) {
+                    console.log("Options:", JSON.stringify(this.options, null, 2));
+                }
+                console.log("--- nodehive-js debug end ---");
+            }
         }
 
         try {
@@ -102,36 +110,37 @@ export class NodeHiveClient {
     }
 
     /**
-     * Retrieves menu items by menu id from the Drupal JSON:API.
-     * @param {string} menuId - The unique identifier for the menu.
-     * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
-     * @returns {Promise<any>} - A Promise that resolves to the menu items data.
-     */
-    async getMenuItems(menuId) {
+   * Retrieves menu items by menu id from the Drupal JSON:API.
+   * @param {string} menuId - The unique identifier for the menu.
+   * @param {string} [lang=null] - Optional language parameter.
+   * @returns {Promise<any>} - A Promise that resolves to the menu items data.
+   */
+    async getMenuItems(menuId, lang) {
         // Initialize an empty query string
         const apiParams = new DrupalJsonApiParams();
 
         apiParams
-            .addFilter("status", "1")
-            .addFields("menu_link_content--menu_link_content", [
-                "title",
-                "url",
-                "enabled",
-                "menu_name",
-                "external",
-                "options",
-                "weight",
-                "expanded",
-                "parent",
+            .addFilter('status', '1')
+            .addFields('menu_link_content--menu_link_content', [
+                'title',
+                'url',
+                'enabled',
+                'menu_name',
+                'external',
+                'options',
+                'weight',
+                'expanded',
+                'parent',
             ])
             .getQueryObject();
 
         const queryString = apiParams.getQueryString();
         // Construct the endpoint URL using the menu id
         const endpoint = `/jsonapi/menu_items/${menuId}?${queryString}&jsonapi_include=1`;
-
+        const url = lang ? `/${lang}${endpoint}` : `${endpoint}`;
+  
         // Make the GET request to the Drupal JSON:API
-        return this.request(endpoint, "GET");
+        return this.request(url, 'GET');
     }
 
     /**
@@ -164,6 +173,7 @@ export class NodeHiveClient {
     /**
      * Retrieves a list of nodes from the Drupal JSON:API.
      * @param {string} contentType - The content type to interact with.
+     * @param {string} [lang=null] - Optional language parameter.
      * @param {DrupalJsonApiParams} params - DrupalJsonApiParams to customize the query.
      * @returns {Promise<any>} - A Promise that resolves to the list of nodes.
      */
@@ -232,6 +242,7 @@ export class NodeHiveClient {
      * Retrieves a single fragment by its UUID from the Drupal JSON:API.
      * @param {string} uuid - The unique identifier for the fragment.
      * @param {string} fragmentType - The fragment type of the fragment.
+     * @param {string} [lang=null] - Optional language parameter.
      * @param {DrupalJsonApiParams} [params=null] - Optional DrupalJsonApiParams to customize the query.
      * @returns {Promise<any>} - A Promise that resolves to the node data.
      */
@@ -321,7 +332,7 @@ export class NodeHiveClient {
             console.error("Error in getParagraph:", error);
         }
     }
-    
+
     /**
      * Retrieves all taxonomy terms of a specific vocabulary from the Drupal JSON:API.
      * @param {string} vocabularyId - The vocabulary ID of the taxonomy terms.
@@ -362,7 +373,7 @@ export class NodeHiveClient {
         }
     }
 
-    
+
 
     /**
     * Retrieves a specific taxonomy term by its ID from the Drupal JSON:API.
@@ -379,45 +390,152 @@ export class NodeHiveClient {
         params = new DrupalJsonApiParams()
     ) {
         try {
-        // Check for valid termId and vocabularyId
-        if (
-            !termId ||
-            typeof termId !== 'string' ||
-            !vocabularyId ||
-            typeof vocabularyId !== 'string'
-        ) {
-            throw new Error('Invalid term ID or vocabulary ID');
-        }
+            // Check for valid termId and vocabularyId
+            if (
+                !termId ||
+                typeof termId !== 'string' ||
+                !vocabularyId ||
+                typeof vocabularyId !== 'string'
+            ) {
+                throw new Error('Invalid term ID or vocabulary ID');
+            }
 
-        // Apply type configuration if available
-        const type = `taxonomy_term--${vocabularyId}`;
-        const typeConfig = this.nodehiveconfig.entities[type];
-        if (typeConfig) {
-            this.applyConfigToParams(params, typeConfig, type);
-        }
+            // Apply type configuration if available
+            const type = `taxonomy_term--${vocabularyId}`;
+            const typeConfig = this.nodehiveconfig.entities[type];
+            if (typeConfig) {
+                this.applyConfigToParams(params, typeConfig, type);
+            }
 
-        let queryString = params.getQueryString();
+            let queryString = params.getQueryString();
 
-        // Construct the endpoint URL using the taxonomy term ID and vocabulary ID
-        let endpoint = `/jsonapi/taxonomy_term/${vocabularyId}/${termId}?${queryString}`;
+            // Construct the endpoint URL using the taxonomy term ID and vocabulary ID
+            let endpoint = `/jsonapi/taxonomy_term/${vocabularyId}/${termId}?${queryString}`;
 
-        // Append language if provided
-        if (lang) {
-            endpoint = `/${lang}${endpoint}`;
-        }
+            // Append language if provided
+            if (lang) {
+                endpoint = `/${lang}${endpoint}`;
+            }
 
-        // Make the GET request to the Drupal JSON:API
-        return await this.request(endpoint, 'GET');
+            // Make the GET request to the Drupal JSON:API
+            return await this.request(endpoint, 'GET');
         } catch (error) {
-        console.error('Error in getTaxonomyTerm:', error);
-        throw error; // Rethrow the error to be handled by the caller
+            console.error('Error in getTaxonomyTerm:', error);
+            throw error; // Rethrow the error to be handled by the caller
+        }
+    }
+
+    /** Retrieves a list of taxonomy terms from the Drupal JSON:API.
+     * @param {string} taxonomyType - The taxonomy type to interact with.
+     * @param {string} [lang=null] - Optional language parameter.
+     * @param {DrupalJsonApiParams} [params=new DrupalJsonApiParams()] - Optional DrupalJsonApiParams to customize the query.
+     * @returns {Promise<any>} - A Promise that resolves to the list of taxonomy terms.
+     */
+    async getTaxonomies(
+        taxonomyType,
+        lang = null,
+        params = new DrupalJsonApiParams()
+    ) {
+        try {
+            // Validate taxonomyType parameter
+            if (!taxonomyType || typeof taxonomyType !== 'string') {
+                throw new Error('Invalid taxonomy type');
+            }
+
+            // Apply configurations from nodehiveconfig if applicable
+            const type = 'taxonomy-' + taxonomyType;
+            const typeConfig = this.nodehiveconfig.entities[type];
+            this.applyConfigToParams(params, typeConfig, type);
+
+            // Construct query string from DrupalJsonApiParams
+            const queryString = params.getQueryString({ encode: false });
+
+            // Construct the endpoint URL for fetching taxonomy terms
+            let endpoint = `/jsonapi/taxonomy_term/${taxonomyType}`;
+            if (queryString) {
+                endpoint += `?${queryString}&jsonapi_include=1`;
+            } else {
+                endpoint += `?jsonapi_include=1`;
+            }
+
+            // Prepend language prefix to endpoint if specified
+            if (lang) {
+                endpoint = `/${lang}${endpoint}`;
+            }
+
+            // Make the GET request to the Drupal JSON:API
+            return this.request(endpoint, 'GET');
+        } catch (error) {
+            console.error('Error in getTaxonomies:', error);
+        }
+    }
+
+    /**
+     * Retrieves a specific media item by its UUID from the Drupal JSON:API.
+     * @param {string} uuid - The unique identifier for the media item.
+     * @param {string} mediaType - The type of media (e.g., 'image', 'video').
+     * @param {string} [lang=null] - Optional language parameter.
+     * @param {DrupalJsonApiParams} [params=new DrupalJsonApiParams()] - Optional DrupalJsonApiParams to customize the query.
+     * @returns {Promise<any>} - A Promise that resolves to the media data.
+     * @throws Will throw an error if the request fails.
+     */
+    async getMedia(
+        uuid,
+        mediaType,
+        lang = null,
+        params = new DrupalJsonApiParams()
+    ) {
+        try {
+            if (!mediaType || typeof mediaType !== 'string') {
+                throw new Error('Invalid media type type');
+            }
+
+            const queryString = params.getQueryString();
+
+            let endpoint = `/jsonapi/media/${mediaType}/${uuid}?${queryString}`;
+
+            if (lang) {
+                endpoint = `/${lang}${endpoint}`;
+            }
+
+            return await this.request(endpoint, 'GET');
+        } catch (error) {
+            console.error('Error in getMedia:', error);
+        }
+    }
+
+    /**
+     * Retrieves a list of media items by type from the Drupal JSON:API.
+     * @param {string} mediaType - The type of media (e.g., 'image', 'video').
+     * @param {string} [lang=null] - Optional language parameter.
+     * @param {DrupalJsonApiParams} [params=new DrupalJsonApiParams()] - Optional DrupalJsonApiParams to customize the query.
+     * @returns {Promise<any>} - A Promise that resolves to the list of media items.
+     * @throws Will throw an error if the request fails.
+     */
+    async getMedias(mediaType, lang = null, params = new DrupalJsonApiParams()) {
+        try {
+            if (!mediaType || typeof mediaType !== 'string') {
+                throw new Error('Invalid media type type');
+            }
+
+            const queryString = params.getQueryString();
+
+            let endpoint = `/jsonapi/media/${mediaType}?${queryString}`;
+
+            if (lang) {
+                endpoint = `/${lang}${endpoint}`;
+            }
+
+            return await this.request(endpoint, 'GET');
+        } catch (error) {
+            console.error('Error in getMedia:', error);
         }
     }
 
     async router(slug, lang = null) {
         // Build the JSON API URL based on the slug array
-      const jsonApiUrl = `/router/translate-path?path=/${slug}`;
-      const url = lang ? `/${lang}${jsonApiUrl}` : jsonApiUrl;
+        const jsonApiUrl = `/router/translate-path?path=/${slug}`;
+        const url = lang ? `/${lang}${jsonApiUrl}` : jsonApiUrl;
 
         try {
             // Fetch the data from the API URL
@@ -438,13 +556,13 @@ export class NodeHiveClient {
      * @returns {Promise<any>} - A Promise that resolves to the translated paths e.g. {en: 'path', fr: 'path'}
      */
     async getTranslatedPaths(slug) {
-      const apiUrl = '/nodehive/api/translated-paths?path=' + slug;
-      try {
-        return this.request(apiUrl.toString());
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+        const apiUrl = '/nodehive/api/translated-paths?path=' + slug;
+        try {
+            return this.request(apiUrl.toString());
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 
     async getResourceBySlug(slug, lang = null) {
@@ -531,28 +649,28 @@ export class NodeHiveClient {
      * @return {Promise} - A Promise that resolves to the JWT token
      */
     async getJWTAccessToken(email, password) {
-      let data;
-      let error;
+        let data;
+        let error;
 
-      const loginData = Buffer.from(`${email}:${password}`).toString("base64");
+        const loginData = Buffer.from(`${email}:${password}`).toString("base64");
 
-      const response = await fetch(this.baseUrl + `/jwt/token?_format=json`, {
-          method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-              Authorization: `Basic ${loginData}`,
-          },
-      });
+        const response = await fetch(this.baseUrl + `/jwt/token?_format=json`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Basic ${loginData}`,
+            },
+        });
 
-      if (!response.ok) {
-        error = "getJWTAccessToken response status: " + response.status;
-      } else {
-        const responseData =  await response.json();
+        if (!response.ok) {
+            error = "getJWTAccessToken response status: " + response.status;
+        } else {
+            const responseData = await response.json();
 
-        data = responseData?.token;
-      }
+            data = responseData?.token;
+        }
 
-      return { data, error }
+        return { data, error }
     }
 
     /**

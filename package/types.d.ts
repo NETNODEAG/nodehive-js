@@ -28,7 +28,7 @@ declare module 'nodehive-js' {
 
         getContentTypes(): Promise<ApiResponse>;
         getAvailableMenus(): Promise<ApiResponse>;
-        getMenuItems(menuId: string, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+        getMenuItems(menuId: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getNodes(contentType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getNode(uuid: string, contentType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getFragment(uuid: string, fragmentType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
@@ -36,6 +36,10 @@ declare module 'nodehive-js' {
         getParagraph(uuid: string, paragraphType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getTaxonomyTerms(vocabularyId: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
         getTaxonomyTerm(termId: string, vocabularyId: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+        getTaxonomies(taxonomyType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+        getMedia(uuid: string, mediaType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+        getMedias(mediaType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+
         router(slug: string, lang?: string | null): Promise<ApiResponse>;
         getTranslatedPaths(slug: string): Promise<ApiResponse>;
         getResourceBySlug(slug: string, lang?: string | null): Promise<ApiResponse>;
