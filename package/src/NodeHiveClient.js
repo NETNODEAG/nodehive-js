@@ -138,7 +138,7 @@ export class NodeHiveClient {
         // Construct the endpoint URL using the menu id
         const endpoint = `/jsonapi/menu_items/${menuId}?${queryString}&jsonapi_include=1`;
         const url = lang ? `/${lang}${endpoint}` : `${endpoint}`;
-  
+
         // Make the GET request to the Drupal JSON:API
         return this.request(url, 'GET');
     }
@@ -492,7 +492,7 @@ export class NodeHiveClient {
 
             const queryString = params.getQueryString();
 
-            let endpoint = `/jsonapi/media/${mediaType}/${uuid}?${queryString}`;
+            let endpoint = `/jsonapi/media/${mediaType}/${uuid}?${queryString}&jsonapi_include=1`;
 
             if (lang) {
                 endpoint = `/${lang}${endpoint}`;
@@ -520,7 +520,7 @@ export class NodeHiveClient {
 
             const queryString = params.getQueryString();
 
-            let endpoint = `/jsonapi/media/${mediaType}?${queryString}`;
+            let endpoint = `/jsonapi/media/${mediaType}?${queryString}&jsonapi_include=1`;
 
             if (lang) {
                 endpoint = `/${lang}${endpoint}`;
