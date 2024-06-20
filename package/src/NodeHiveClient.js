@@ -138,7 +138,7 @@ export class NodeHiveClient {
         // Construct the endpoint URL using the menu id
         const endpoint = `/jsonapi/menu_items/${menuId}?${queryString}&jsonapi_include=1`;
         const url = lang ? `/${lang}${endpoint}` : `${endpoint}`;
-  
+
         // Make the GET request to the Drupal JSON:API
         return this.request(url, 'GET');
     }
@@ -226,10 +226,10 @@ export class NodeHiveClient {
 
         this.applyConfigToParams(params, typeConfig, type);
 
-        queryString = "?" + params.getQueryString({ encode: false });
+        queryString = params.getQueryString({ encode: false });
 
         // Construct the endpoint URL using the node UUID and content type
-        const endpoint = `/jsonapi/node/${contentType}/${uuid}${queryString}&jsonapi_include=1`;
+        const endpoint = `/jsonapi/node/${contentType}/${uuid}?${queryString}&jsonapi_include=1`;
 
         if (lang) {
             return this.request(`/${lang}${endpoint}`, "GET");
@@ -320,7 +320,7 @@ export class NodeHiveClient {
 
             const queryString = params.getQueryString();
 
-            let endpoint = `/jsonapi/paragraph/${paragraphType}/${uuid}?${queryString}`;
+            let endpoint = `/jsonapi/paragraph/${paragraphType}/${uuid}?${queryString}&jsonapi_include=1`;
 
             // Append language if provided
             if (lang) {
@@ -487,13 +487,18 @@ export class NodeHiveClient {
     ) {
         try {
             if (!mediaType || typeof mediaType !== 'string') {
-                throw new Error('Invalid media type type');
+                throw new Error('Invalid media type');
             }
+            
+            const type = "media-" + mediaType;
+            const typeConfig = this.nodehiveconfig.entities[type];
+            this.applyConfigToParams(params, typeConfig, type);
 
-            const queryString = params.getQueryString();
+            
+            const queryString = params.getQueryString({ encode: false });
 
-            let endpoint = `/jsonapi/media/${mediaType}/${uuid}?${queryString}`;
-
+            let endpoint = `/jsonapi/media/${mediaType}/${uuid}?${queryString}&jsonapi_include=1`;
+          
             if (lang) {
                 endpoint = `/${lang}${endpoint}`;
             }
@@ -501,6 +506,7 @@ export class NodeHiveClient {
             return await this.request(endpoint, 'GET');
         } catch (error) {
             console.error('Error in getMedia:', error);
+            throw error; // Ensure that the error is thrown after logging
         }
     }
 
@@ -515,8 +521,15 @@ export class NodeHiveClient {
     async getMedias(mediaType, lang = null, params = new DrupalJsonApiParams()) {
         try {
             if (!mediaType || typeof mediaType !== 'string') {
-                throw new Error('Invalid media type type');
+                throw new Error('Invalid media type');
             }
+
+            const type = "media-" + mediaType;
+            const typeConfig = this.nodehiveconfig.entities[type];
+            this.applyConfigToParams(params, typeConfig, type);
+
+            
+
 
             const queryString = params.getQueryString();
 
@@ -528,9 +541,11 @@ export class NodeHiveClient {
 
             return await this.request(endpoint, 'GET');
         } catch (error) {
-            console.error('Error in getMedia:', error);
+            console.error('Error in getMedias:', error);
+            throw error; // Ensure that the error is thrown after logging
         }
     }
+
 
     async router(slug, lang = null) {
         // Build the JSON API URL based on the slug array
