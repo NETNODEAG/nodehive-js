@@ -494,11 +494,10 @@ export class NodeHiveClient {
             const typeConfig = this.nodehiveconfig.entities[type];
             this.applyConfigToParams(params, typeConfig, type);
 
-            
             const queryString = params.getQueryString({ encode: false });
 
             let endpoint = `/jsonapi/media/${mediaType}/${uuid}?${queryString}&jsonapi_include=1`;
-          
+
             if (lang) {
                 endpoint = `/${lang}${endpoint}`;
             }
@@ -533,7 +532,7 @@ export class NodeHiveClient {
 
             const queryString = params.getQueryString();
 
-            let endpoint = `/jsonapi/media/${mediaType}?${queryString}`;
+            let endpoint = `/jsonapi/media/${mediaType}?${queryString}&jsonapi_include=1`;
 
             if (lang) {
                 endpoint = `/${lang}${endpoint}`;
