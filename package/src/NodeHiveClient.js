@@ -49,7 +49,7 @@ export class NodeHiveClient {
             method,
             headers,
             //credentials: 'same-origin',
-            next: { revalidate: 1 },
+            next: { revalidate: 300 },
             redirect: 'follow',
             //cache: 'force-cache'
         };
