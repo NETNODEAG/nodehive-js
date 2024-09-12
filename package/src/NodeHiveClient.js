@@ -489,7 +489,7 @@ export class NodeHiveClient {
             if (!mediaType || typeof mediaType !== 'string') {
                 throw new Error('Invalid media type');
             }
-            
+
             const type = "media-" + mediaType;
             const typeConfig = this.nodehiveconfig.entities[type];
             this.applyConfigToParams(params, typeConfig, type);
@@ -561,6 +561,36 @@ export class NodeHiveClient {
 
             // If there was an error, return to the 404 page
             notFound();
+        }
+    }
+
+    /**
+     * Checks for and retrieves a redirect for a given slug.
+     * @param {string} slug - The URL slug to check for redirection.
+     * @param {string|null} lang - The language code, if applicable.
+     * 
+     * @returns {Promise<Object|null>} An object containing redirect information if available, null otherwise.
+     *          The object includes 'from' (original path), 'to' (redirect path), and 'status' (HTTP status code).
+     * @throws {Error} If there's an issue with the router request or response parsing.
+     */
+    async getRedirect(slug, lang = null) {
+        try {
+            const routerResponse = await this.router(slug, lang);
+
+            if (routerResponse?.redirect?.[0]) {
+                const { from, to, status } = routerResponse.redirect[0];
+
+                return {
+                    from,
+                    to,
+                    status: Number(status)
+                };
+            }
+
+            return null; // No redirect available
+        } catch (error) {
+            console.error('Error in getRedirect:', error);
+            throw new Error(`Failed to get redirect for slug "${slug}": ${error.message}`);
         }
     }
 
