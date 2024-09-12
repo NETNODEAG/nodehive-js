@@ -41,6 +41,7 @@ declare module 'nodehive-js' {
         getMedias(mediaType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
 
         router(slug: string, lang?: string | null): Promise<ApiResponse>;
+        getRedirect(slug: string, lang?: string | null): Promise<ApiResponse>;
         getTranslatedPaths(slug: string): Promise<ApiResponse>;
         getResourceBySlug(slug: string, lang?: string | null): Promise<ApiResponse>;
 
