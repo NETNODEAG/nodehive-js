@@ -558,9 +558,7 @@ export class NodeHiveClient {
         } catch (error) {
             // Log the error
             console.error(error);
-
-            // If there was an error, return to the 404 page
-            notFound();
+            return null;
         }
     }
 
