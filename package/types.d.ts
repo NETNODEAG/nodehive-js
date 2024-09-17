@@ -19,6 +19,12 @@ interface UserDetails {
     email: string;
 }
 
+interface RedirectData {
+    from: string;
+    to: string;
+    status: number;
+}
+
 // Extend the module declaration to include missing methods
 declare module 'nodehive-js' {
     export class NodeHiveClient {
@@ -41,7 +47,8 @@ declare module 'nodehive-js' {
         getMedias(mediaType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
 
         router(slug: string, lang?: string | null): Promise<ApiResponse>;
-        getRedirect(slug: string, lang?: string | null): Promise<ApiResponse>;
+        getRedirect(slug: string, lang?: string | null): Promise<RedirectData | null>;
+
         getTranslatedPaths(slug: string): Promise<ApiResponse>;
         getResourceBySlug(slug: string, lang?: string | null): Promise<ApiResponse>;
 
