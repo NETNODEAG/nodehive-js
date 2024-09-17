@@ -527,7 +527,7 @@ export class NodeHiveClient {
             const typeConfig = this.nodehiveconfig.entities[type];
             this.applyConfigToParams(params, typeConfig, type);
 
-            
+
 
 
             const queryString = params.getQueryString();
@@ -585,10 +585,20 @@ export class NodeHiveClient {
                 };
             }
 
+            const currentPath = lang ? `/${lang}/${slug}` : `/${slug}`;
+            const routerEntityPath = routerResponse?.entity?.path;
+            if (routerEntityPath && routerEntityPath !== currentPath) {
+                return {
+                    from: currentPath,
+                    to: routerEntityPath,
+                    status: 301
+                };
+            }
+
             return null; // No redirect available
         } catch (error) {
             console.error('Error in getRedirect:', error);
-            throw new Error(`Failed to get redirect for slug "${slug}": ${error.message}`);
+            return null;
         }
     }
 
