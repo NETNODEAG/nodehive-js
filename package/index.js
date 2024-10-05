@@ -1,2 +1,3 @@
 // index.js
-export { NodeHiveClient } from './src/NodeHiveClient';
+import { NodeHiveClient } from './src/NodeHiveClient.js';
+export { NodeHiveClient };
