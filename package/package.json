@@ -35,16 +35,15 @@
   },
   "homepage": "https://github.com/NETNODEAG/nodehive-js#readme",
   "scripts": {
-    "test": "node test/run-all.js",
-    "test:simple": "node test/simple-test.js",
-    "test:comprehensive": "node test/comprehensive-test.js",
-    "test:core": "node test/core.test.js",
-    "test:auth": "node test/auth.test.js",
-    "test:taxonomy": "node test/taxonomy.test.js",
-    "test:media": "node test/media.test.js",
-    "test:errors": "node test/error-handling.test.js",
-    "test:all": "node test/run-all.js",
-    "explorer": "cd explorer && npm run dev"
+    "test": "node tests/run-all.js",
+    "test:simple": "node tests/simple-test.js",
+    "test:comprehensive": "node tests/comprehensive-test.js",
+    "test:core": "node tests/core.test.js",
+    "test:auth": "node tests/auth.test.js",
+    "test:taxonomy": "node tests/taxonomy.test.js",
+    "test:media": "node tests/media.test.js",
+    "test:errors": "node tests/error-handling.test.js",
+    "test:all": "node tests/run-all.js"
   },
   "dependencies": {
     "drupal-jsonapi-params": "^2.3.1"
