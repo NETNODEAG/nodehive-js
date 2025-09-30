@@ -1,2 +1,4 @@
 node_modules
 playground/.env
+.DS_Store
+.claude

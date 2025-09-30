@@ -1,3 +1,9 @@
+# Run tests
+```
+cd package
+npm run test
+```
+
 # Publish nodehive-js on npm
 
 ```
