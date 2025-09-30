@@ -271,10 +271,30 @@ export class NodeHiveClient {
      */
     _buildQueryString(params) {
         if (!params) return '';
-        if (params instanceof DrupalJsonApiParams) {
+
+        // Handle string - show helpful error
+        if (typeof params === 'string') {
+            throw new ValidationError(
+                'params should be a DrupalJsonApiParams object or plain object, not a string. ',
+                params
+            );
+        }
+
+        // Handle DrupalJsonApiParams object or any object with getQueryString method
+        if (typeof params === 'object' && typeof params.getQueryString === 'function') {
             return params.getQueryString({ encode: false });
         }
-        return new URLSearchParams(params).toString();
+
+        // Handle plain object (convert to URLSearchParams)
+        if (typeof params === 'object') {
+            return new URLSearchParams(params).toString();
+        }
+
+        throw new ValidationError(
+            'params must be a DrupalJsonApiParams object or a plain object',
+            'params',
+            params
+        );
     }
 
     // ===== Content Methods =====
