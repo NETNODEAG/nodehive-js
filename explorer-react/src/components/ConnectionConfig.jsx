@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { Settings, Loader2, Wifi, WifiOff, User, Lock, Eye, EyeOff } from 'lucide-react';
 import clsx from 'clsx';
 
 function ConnectionConfig({ onConnect, onDisconnect, isConnected, isLoading }) {
@@ -11,8 +11,12 @@ function ConnectionConfig({ onConnect, onDisconnect, isConnected, isLoading }) {
     debug: true,
     retryEnabled: true,
     retryAttempts: 3,
-    authToken: ''
+    authToken: '',
+    useAuth: false,
+    username: '',
+    password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -145,16 +149,78 @@ function ConnectionConfig({ onConnect, onDisconnect, isConnected, isLoading }) {
                 </div>
               )}
 
-              <div>
-                <label htmlFor="authToken" className="label">Auth Token (Optional)</label>
-                <input
-                  id="authToken"
-                  type="text"
-                  className="input mt-1"
-                  value={config.authToken}
-                  onChange={(e) => setConfig({ ...config, authToken: e.target.value })}
-                  placeholder="Bearer token..."
-                />
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <input
+                    id="useAuth"
+                    type="checkbox"
+                    className="rounded border-input"
+                    checked={config.useAuth}
+                    onChange={(e) => setConfig({ ...config, useAuth: e.target.checked })}
+                  />
+                  <label htmlFor="useAuth" className="text-sm font-medium">Use Authentication</label>
+                </div>
+
+                {config.useAuth && (
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="username" className="label flex items-center gap-2">
+                        <User size={14} />
+                        Username
+                      </label>
+                      <input
+                        id="username"
+                        type="text"
+                        className="input mt-1"
+                        value={config.username}
+                        onChange={(e) => setConfig({ ...config, username: e.target.value })}
+                        placeholder="Enter username"
+                        autoComplete="username"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="password" className="label flex items-center gap-2">
+                        <Lock size={14} />
+                        Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          className="input mt-1 pr-10"
+                          value={config.password}
+                          onChange={(e) => setConfig({ ...config, password: e.target.value })}
+                          placeholder="Enter password"
+                          autoComplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground">
+                      <p>Or provide a Bearer token directly:</p>
+                    </div>
+
+                    <div>
+                      <label htmlFor="authToken" className="label">Auth Token (Optional)</label>
+                      <input
+                        id="authToken"
+                        type="text"
+                        className="input mt-1"
+                        value={config.authToken}
+                        onChange={(e) => setConfig({ ...config, authToken: e.target.value })}
+                        placeholder="Bearer token..."
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-4">

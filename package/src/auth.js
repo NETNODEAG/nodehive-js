@@ -10,7 +10,10 @@ export class AuthManager {
 
     async login(email, password) {
         try {
-            const loginData = Buffer.from(`${email}:${password}`).toString('base64');
+            // Use btoa for browser compatibility, or Buffer in Node.js
+            const loginData = typeof Buffer !== 'undefined'
+                ? Buffer.from(`${email}:${password}`).toString('base64')
+                : btoa(`${email}:${password}`);
             const response = await fetch(
                 `${this.client.baseUrl}/jwt/token?_format=json`,
                 {

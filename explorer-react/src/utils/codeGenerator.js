@@ -445,3 +445,77 @@ export function generateMediaCode(formData, clientConfig = {}) {
 
   return code.join('\n');
 }
+
+export function generateSpacesCode(formData, clientConfig) {
+  const code = [];
+
+  // Import statements
+  code.push(`import { NodeHiveClient } from 'nodehive-js';`);
+  code.push(`import { DrupalJsonApiParams } from 'drupal-jsonapi-params';`);
+  code.push('');
+
+  // Function definition
+  code.push(`async function fetchNodeHiveSpaces() {`);
+  code.push(`  // Initialize the client`);
+  code.push(`  const client = new NodeHiveClient({`);
+  code.push(`    baseUrl: '${clientConfig.baseUrl || 'https://your-site.nodehive.app'}',`);
+
+  if (clientConfig.debug !== undefined) {
+    code.push(`    debug: ${clientConfig.debug},`);
+  }
+
+  code.push(`    auth: {`);
+  code.push(`      token: process.env.AUTH_TOKEN || 'YOUR_AUTH_TOKEN' // Required for spaces`);
+  code.push(`    }`);
+  code.push(`  });`);
+  code.push('');
+
+  // Build params
+  code.push(`  // Build the API parameters`);
+  code.push(`  const params = new DrupalJsonApiParams();`);
+  code.push(`  params.addCustomParam({ jsonapi_include: 1 });`);
+
+  if (formData.spaceId) {
+    code.push(`  params.addFilter('drupal_internal__id', '${formData.spaceId}');`);
+  }
+
+  if (formData.limit) {
+    code.push(`  params.addPageLimit(${formData.limit});`);
+  }
+
+  if (formData.fields.length > 0) {
+    code.push(`  params.addFields('nodehive_space--nodehive_space', [${formData.fields.map(f => `'${f}'`).join(', ')}]);`);
+  }
+
+  if (formData.includeRelationships) {
+    code.push(`  params.addInclude(['field_space_owner', 'field_space_type']);`);
+  }
+
+  code.push(`  params.addSort('created', 'DESC');`);
+  code.push('');
+
+  // Make the request
+  code.push(`  // Fetch the data (requires admin authentication)`);
+  code.push(`  try {`);
+  code.push(`    const endpoint = '/jsonapi/nodehive_space/nodehive_space';`);
+  code.push(`    const queryString = params.getQueryString();`);
+  code.push(`    const fullEndpoint = queryString ? \`\${endpoint}?\${queryString}\` : endpoint;`);
+  code.push('');
+  code.push(`    const response = await client.request(fullEndpoint${formData.language ? `, { lang: '${formData.language}' }` : ''});`);
+  code.push('');
+  code.push(`    console.log('Fetched NodeHive spaces:', response.data);`);
+  code.push(`    return response;`);
+  code.push(`  } catch (error) {`);
+  code.push(`    if (error.message.includes('403')) {`);
+  code.push(`      console.error('Access denied. Admin privileges required.');`);
+  code.push(`    }`);
+  code.push(`    console.error('Error fetching spaces:', error);`);
+  code.push(`    throw error;`);
+  code.push(`  }`);
+  code.push(`}`);
+  code.push('');
+  code.push('// Call the function');
+  code.push('fetchNodeHiveSpaces();');
+
+  return code.join('\n');
+}

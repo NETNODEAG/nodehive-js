@@ -366,8 +366,7 @@ export class NodeHiveClient {
         const includeParam = queryString ? '&jsonapi_include=1' : '?jsonapi_include=1';
         const endpoint = `/jsonapi/menu/menu${queryString ? '?' + queryString : ''}${includeParam}`;
 
-        const response = await this.request(endpoint, { lang, ...requestOptions });
-        return response.data || response;
+        return this.request(endpoint, { lang, ...requestOptions });
     }
 
     /**
@@ -393,8 +392,7 @@ export class NodeHiveClient {
         const includeParam = queryString ? '&jsonapi_include=1' : '?jsonapi_include=1';
         const endpoint = `/jsonapi/menu_link_content/menu_link_content${queryString ? '?' + queryString : ''}${includeParam}`;
 
-        const response = await this.request(endpoint, { lang, ...requestOptions });
-        return response.data || response;
+        return this.request(endpoint, { lang, ...requestOptions });
     }
 
     /**
@@ -426,8 +424,7 @@ export class NodeHiveClient {
         const queryString = this._buildQueryString(params);
         const endpoint = `/jsonapi/taxonomy_vocabulary/taxonomy_vocabulary${queryString ? '?' + queryString : ''}`;
 
-        const response = await this.request(endpoint, { lang, ...requestOptions });
-        return response.data || response;
+        return this.request(endpoint, { lang, ...requestOptions });
     }
 
     /**
@@ -445,8 +442,7 @@ export class NodeHiveClient {
         const queryString = this._buildQueryString(params);
         const endpoint = `/jsonapi/taxonomy_term/${vocabularyId}${queryString ? '?' + queryString : ''}`;
 
-        const response = await this.request(endpoint, { lang, ...requestOptions });
-        return response.data || response;
+        return this.request(endpoint, { lang, ...requestOptions });
     }
 
     /**
@@ -503,8 +499,7 @@ export class NodeHiveClient {
         const includeParam = queryString ? '&jsonapi_include=1' : '?jsonapi_include=1';
         const endpoint = `/jsonapi/media/${mediaType}${queryString ? '?' + queryString : ''}${includeParam}`;
 
-        const response = await this.request(endpoint, { lang, ...requestOptions });
-        return response.data || response;
+        return this.request(endpoint, { lang, ...requestOptions });
     }
 
     /**
@@ -617,8 +612,7 @@ export class NodeHiveClient {
         const queryString = this._buildQueryString(params);
         const endpoint = `/jsonapi/path_alias/path_alias${queryString ? '?' + queryString : ''}`;
 
-        const response = await this.request(endpoint, { lang, ...requestOptions });
-        return response.data || response;
+        return this.request(endpoint, { lang, ...requestOptions });
     }
 
     /**
@@ -632,8 +626,7 @@ export class NodeHiveClient {
         const endpoint = `/jsonapi/redirect/redirect${queryString ? '?' + queryString : ''}`;
 
         try {
-            const response = await this.request(endpoint, { lang, ...requestOptions });
-            return response.data || response;
+            return this.request(endpoint, { lang, ...requestOptions });
         } catch (error) {
             // Redirects might not be available on all Drupal instances
             if (this.debug) console.error('Redirects not available:', error);

@@ -23,20 +23,22 @@ function MenusExplorer({ client, onDataFetch, isLoading, setIsLoading, setError 
 
   const loadAvailableMenus = async () => {
     try {
-      // Try to get menus - this endpoint might vary by Drupal setup
-      const response = await client.getMenus();
-      if (response.data) {
+      // Add jsonapi_include=1 to get drupal_internal__id
+      const params = new DrupalJsonApiParams();
+      params.addCustomParam({ jsonapi_include: 1 });
+      const response = await client.getMenus({ params });
+      if (response && response.data) {
         setMenus(response.data);
       }
     } catch (error) {
       console.error('Failed to load menus:', error);
       // Add common menu fallbacks
       setMenus([
-        { id: 'main', name: 'Main navigation' },
-        { id: 'footer', name: 'Footer' },
-        { id: 'account', name: 'User account menu' },
-        { id: 'admin', name: 'Administration' },
-        { id: 'tools', name: 'Tools' }
+        { drupal_internal__id: 'main', label: 'Main navigation' },
+        { drupal_internal__id: 'footer', label: 'Footer' },
+        { drupal_internal__id: 'account', label: 'User account menu' },
+        { drupal_internal__id: 'admin', label: 'Administration' },
+        { drupal_internal__id: 'tools', label: 'Tools' }
       ]);
     }
   };
@@ -96,8 +98,8 @@ function MenusExplorer({ client, onDataFetch, isLoading, setIsLoading, setError 
 
       const params = new DrupalJsonApiParams();
 
-      // Add filters for menu
-      params.addFilter('menu_name', formData.menuId);
+      // Menu filtering is handled by the endpoint itself (/jsonapi/menu_items/{menuId})
+      // No need to add filter params
 
       // Add depth filter if specified
       if (formData.depth > 0) {
@@ -118,7 +120,11 @@ function MenusExplorer({ client, onDataFetch, isLoading, setIsLoading, setError 
         lang: formData.language || undefined
       };
 
-      const response = await client.getMenuLinks(formData.menuId, options);
+      // Use the menu_items endpoint with the machine name from drupal_internal__id
+      const endpoint = `/jsonapi/menu_items/${formData.menuId}`;
+      const queryString = params.getQueryString();
+      const fullEndpoint = queryString ? `${endpoint}?${queryString}&jsonapi_include=1` : `${endpoint}?jsonapi_include=1`;
+      const response = await client.request(fullEndpoint, { lang: options.lang });
       onDataFetch(response);
     } catch (error) {
       setError(error.message);
@@ -127,29 +133,6 @@ function MenusExplorer({ client, onDataFetch, isLoading, setIsLoading, setError 
     }
   };
 
-  const handleLoadMenuTree = async () => {
-    if (!formData.menuId) {
-      setError('Please select a menu');
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const options = {
-        lang: formData.language || undefined
-      };
-
-      // Try to get the menu tree (hierarchical structure)
-      const response = await client.getMenuTree(formData.menuId, options);
-      onDataFetch(response);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLoadAllMenus = async () => {
     try {
@@ -186,19 +169,22 @@ function MenusExplorer({ client, onDataFetch, isLoading, setIsLoading, setError 
             >
               <option value="">Select menu...</option>
               {menus.map((menu) => {
-                const id = menu.attributes?.drupal_internal__id || menu.id;
-                const name = menu.attributes?.label || menu.attributes?.title || menu.name || id;
+                // Use drupal_internal__id as the machine name for the menu_items endpoint
+                const machineName = menu.drupal_internal__id;
+                const name = menu.label ||
+                            menu.attributes?.label ||
+                            menu.name ||
+                            'Unnamed Menu';
+
+                // Skip menus without machine names
+                if (!machineName) return null;
+
                 return (
-                  <option key={id} value={id}>
+                  <option key={menu.id} value={machineName}>
                     {name}
                   </option>
                 );
-              })}
-              <option value="main">Main navigation</option>
-              <option value="footer">Footer</option>
-              <option value="account">User account menu</option>
-              <option value="admin">Administration</option>
-              <option value="tools">Tools</option>
+              }).filter(Boolean)}
             </select>
           </div>
 
@@ -283,16 +269,6 @@ function MenusExplorer({ client, onDataFetch, isLoading, setIsLoading, setError 
                 Load Menu Links
               </>
             )}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleLoadMenuTree}
-            className="btn btn-secondary btn-md w-full"
-            disabled={isLoading || !formData.menuId}
-          >
-            <Search className="mr-2" size={16} />
-            Load Menu Tree
           </button>
 
           <button

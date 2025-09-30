@@ -24,18 +24,19 @@ function TaxonomyExplorer({ client, onDataFetch, isLoading, setIsLoading, setErr
 
   const loadVocabularies = async () => {
     try {
-      const response = await client.getTaxonomyVocabularies();
-      if (response.data) {
+      const params = new DrupalJsonApiParams();
+      params.addCustomParam({ jsonapi_include: 1 });
+      const response = await client.getTaxonomyVocabularies({ params });
+      // Always expect response.data since we're getting the full response now
+      if (response && response.data) {
         setVocabularies(response.data);
-      } else if (Array.isArray(response)) {
-        setVocabularies(response);
       }
     } catch (error) {
       console.error('Failed to load vocabularies:', error);
-      // Add fallback vocabularies
+      // Add fallback vocabularies with correct structure
       setVocabularies([
-        { id: 'tags', attributes: { vid: 'tags', name: 'Tags' } },
-        { id: 'categories', attributes: { vid: 'categories', name: 'Categories' } }
+        { id: '1', drupal_internal__vid: 'tags', name: 'Tags' },
+        { id: '2', drupal_internal__vid: 'categories', name: 'Categories' }
       ]);
     }
   };
@@ -50,10 +51,13 @@ function TaxonomyExplorer({ client, onDataFetch, isLoading, setIsLoading, setErr
 
     try {
       // Fetch a sample term to discover fields
-      const params = new DrupalJsonApiParams().addPageLimit(1);
+      const params = new DrupalJsonApiParams()
+        .addPageLimit(1)
+        .addCustomParam({ jsonapi_include: 1 });
       const response = await client.getTaxonomyTerms(vocabulary, { params });
 
-      if (response.data && response.data.length > 0) {
+      // Handle full response object
+      if (response && response.data && response.data.length > 0) {
         const sampleTerm = response.data[0];
         let fields = [];
 
@@ -112,6 +116,9 @@ function TaxonomyExplorer({ client, onDataFetch, isLoading, setIsLoading, setErr
         params.addFields(`taxonomy_term--${formData.vocabulary}`, formData.fields);
       }
 
+      // Add jsonapi_include parameter
+      params.addCustomParam({ jsonapi_include: 1 });
+
       const options = {
         params,
         lang: formData.language || undefined
@@ -129,7 +136,9 @@ function TaxonomyExplorer({ client, onDataFetch, isLoading, setIsLoading, setErr
   const loadVocabularyList = async () => {
     try {
       setIsLoading(true);
-      const response = await client.getTaxonomyVocabularies();
+      const params = new DrupalJsonApiParams();
+      params.addCustomParam({ jsonapi_include: 1 });
+      const response = await client.getTaxonomyVocabularies({ params });
       onDataFetch(response);
     } catch (error) {
       setError(error.message);
@@ -160,20 +169,25 @@ function TaxonomyExplorer({ client, onDataFetch, isLoading, setIsLoading, setErr
             >
               <option value="">Select vocabulary...</option>
               {vocabularies.map((vocab) => {
-                const vid = vocab.attributes?.vid ||
+                // Get the machine name (vid) - this is what the API expects
+                const vid = vocab.drupal_internal__vid ||
                           vocab.attributes?.drupal_internal__vid ||
-                          vocab.vid ||
-                          vocab.id;
-                const name = vocab.attributes?.name ||
+                          vocab.attributes?.vid ||
+                          vocab.vid;
+
+                // Skip if no valid vid found
+                if (!vid) return null;
+
+                const name = vocab.name ||
+                            vocab.attributes?.name ||
                             vocab.attributes?.label ||
-                            vocab.name ||
                             vid;
                 return (
                   <option key={vocab.id || vid} value={vid}>
                     {name}
                   </option>
                 );
-              })}
+              }).filter(Boolean)}
             </select>
           </div>
 

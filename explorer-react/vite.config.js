@@ -10,7 +10,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'nodehive-js': path.resolve(__dirname, '../index.js'),
+      'nodehive-js': path.resolve(__dirname, '../package/index.js'),
       '@': path.resolve(__dirname, './src')
     }
   }

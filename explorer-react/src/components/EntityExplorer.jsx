@@ -5,9 +5,10 @@ import ContentTypesExplorer from './explorers/ContentTypesExplorer';
 import MediaExplorer from './explorers/MediaExplorer';
 import MenusExplorer from './explorers/MenusExplorer';
 import RouterExplorer from './explorers/RouterExplorer';
+import SpacesExplorer from './explorers/SpacesExplorer';
 import { AlertCircle } from 'lucide-react';
 
-function EntityExplorer({ entity, client, isConnected, onDataFetch, isLoading, setIsLoading, setError }) {
+function EntityExplorer({ entity, client, isConnected, onDataFetch, isLoading, setIsLoading, setError, userInfo }) {
   if (!isConnected) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -29,6 +30,7 @@ function EntityExplorer({ entity, client, isConnected, onDataFetch, isLoading, s
     'media': MediaExplorer,
     'menus': MenusExplorer,
     'router': RouterExplorer,
+    'spaces': SpacesExplorer,
   };
 
   const Explorer = explorers[entity];
@@ -54,6 +56,7 @@ function EntityExplorer({ entity, client, isConnected, onDataFetch, isLoading, s
       isLoading={isLoading}
       setIsLoading={setIsLoading}
       setError={setError}
+      userInfo={userInfo}
     />
   );
 }

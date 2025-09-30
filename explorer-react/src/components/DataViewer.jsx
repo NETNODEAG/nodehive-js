@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 function DataViewer({ data }) {
   const [viewMode, setViewMode] = useState('formatted'); // 'formatted' or 'raw'
-  const [expandedItems, setExpandedItems] = useState(new Set());
+  const [expandedItems, setExpandedItems] = useState(new Set(['root'])); // Start with root expanded
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(JSON.stringify(data, null, 2));
@@ -154,7 +154,7 @@ function DataViewer({ data }) {
           </pre>
         ) : (
           <div className="font-mono text-sm">
-            {renderValue(data)}
+            {renderValue(data, 'root')}
           </div>
         )}
       </div>

@@ -5,7 +5,8 @@ import {
   Menu,
   Image,
   Link,
-  Database
+  Database,
+  Globe
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -15,7 +16,8 @@ const entities = [
   { id: 'taxonomy', label: 'Taxonomy', icon: Tag, description: 'Terms & vocabularies' },
   { id: 'menus', label: 'Menus', icon: Menu, description: 'Menu links' },
   { id: 'media', label: 'Media', icon: Image, description: 'Files & images' },
-  { id: 'router', label: 'Router', icon: Link, description: 'URL aliases' }
+  { id: 'router', label: 'Router', icon: Link, description: 'URL aliases' },
+  { id: 'spaces', label: 'Spaces', icon: Globe, description: 'NodeHive spaces' }
 ];
 
 function Sidebar({ selectedEntity, onSelectEntity, isConnected }) {
