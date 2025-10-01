@@ -222,6 +222,10 @@ export class NodeHiveClient {
     getMedia(uuid: string, mediaType: string, options?: RequestOptions): Promise<ApiResponse>;
     getMediaList(mediaType: string, options?: RequestOptions): Promise<ApiResponse>;
 
+    // ===== Text Methods =====
+    getTexts(options?: RequestOptions): Promise<ApiResponse>;
+    getText(uuid: string, options?: RequestOptions): Promise<ApiResponse>;
+
     // ===== Fragment Methods =====
     getFragment(uuid: string, fragmentType: string, options?: RequestOptions): Promise<ApiResponse>;
     getArea(uuid: string, options?: RequestOptions): Promise<ApiResponse>;

@@ -24,6 +24,7 @@ const testSuites = [
     { name: 'Authentication', file: './auth.test.js' },
     { name: 'Taxonomy', file: './taxonomy.test.js' },
     { name: 'Media', file: './media.test.js' },
+    { name: 'Texts', file: './texts.test.js' },
     { name: 'Error Handling', file: './error-handling.test.js' }
 ];
 

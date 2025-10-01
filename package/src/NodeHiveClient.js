@@ -536,6 +536,38 @@ export class NodeHiveClient {
         return this.getMediaList(mediaType, { lang, params });
     }
 
+    // ===== Text Methods =====
+
+    /**
+     * Get texts (list)
+     */
+    async getTexts(options = {}) {
+        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
+
+        this._applyConfigToParams(params, 'texts');
+        const queryString = this._buildQueryString(params);
+        const endpoint = `/jsonapi/texts/texts${queryString ? '?' + queryString : ''}`;
+
+        return this.request(endpoint, { lang, ...requestOptions });
+    }
+
+    /**
+     * Get single text
+     */
+    async getText(uuid, options = {}) {
+        if (!uuid) {
+            throw new ValidationError('UUID is required', 'uuid', uuid);
+        }
+
+        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
+
+        this._applyConfigToParams(params, 'texts');
+        const queryString = this._buildQueryString(params);
+        const endpoint = `/jsonapi/texts/texts/${uuid}${queryString ? '?' + queryString : ''}`;
+
+        return this.request(endpoint, { lang, ...requestOptions });
+    }
+
     // ===== Fragment Methods =====
 
     /**
