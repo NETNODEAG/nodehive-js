@@ -167,7 +167,10 @@ export class NodeHiveClient {
         if (this.debug) {
             console.log('--- NodeHive Request Debug ---');
             console.log('URL:', url);
-            console.log('Config:', JSON.stringify(requestConfig, null, 2));
+            const debugConfig = { ...requestConfig };
+            delete debugConfig.signal;
+            delete debugConfig.timeoutId;
+            console.log('Config:', JSON.stringify(debugConfig, null, 2));
             console.log('--- End Debug ---');
         }
 
@@ -275,18 +278,20 @@ export class NodeHiveClient {
         // Handle string - show helpful error
         if (typeof params === 'string') {
             throw new ValidationError(
-                'params should be a DrupalJsonApiParams object or plain object, not a string. ',
+                'params should be a DrupalJsonApiParams object or plain object, not a string. ' +
+                'Remove .getQueryString() and pass the params object directly.',
+                'params',
                 params
             );
         }
 
         // Handle DrupalJsonApiParams object or any object with getQueryString method
-        if (typeof params === 'object' && typeof params.getQueryString === 'function') {
+        if (typeof params.getQueryString === 'function') {
             return params.getQueryString({ encode: false });
         }
 
         // Handle plain object (convert to URLSearchParams)
-        if (typeof params === 'object') {
+        if (typeof params === 'object' && params !== null) {
             return new URLSearchParams(params).toString();
         }
 
