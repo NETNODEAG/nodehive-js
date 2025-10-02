@@ -212,7 +212,10 @@ export class NodeHiveClient {
 
     // ===== Menu Methods =====
     getAvailableMenus(options?: RequestOptions): Promise<ApiResponse>;
+    getMenus(options?: RequestOptions): Promise<ApiResponse>;
     getMenuItems(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
+    getMenuLinks(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
+    getMenuTree(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
 
     // ===== Taxonomy Methods =====
     getTaxonomyTerms(vocabularyId: string, options?: RequestOptions): Promise<ApiResponse>;
