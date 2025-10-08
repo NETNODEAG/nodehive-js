@@ -1,0 +1,19 @@
+{
+  "name": "nodehive-js-examples",
+  "version": "2.0.0-beta.6",
+  "type": "module",
+  "description": "Examples for using NodeHive JS Client",
+  "private": true,
+  "scripts": {
+    "no-auth": "node no-authentication.js",
+    "nodehive-api-key": "node nodehive-api-key.js",
+    "oauth": "node oauth-authentication.js",
+    "jwt": "node jwt-authentication.js",
+    "oauth-expiration": "node oauth-token-expiration.js",
+    "oauth-service": "node oauth-client-credentials.js",
+    "typescript": "npx tsx typescript-auth.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0"
+  }
+}

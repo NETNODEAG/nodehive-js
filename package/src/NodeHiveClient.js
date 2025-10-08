@@ -14,7 +14,14 @@ export class NodeHiveClient {
      * @param {boolean} options.debug - Enable debug logging
      * @param {string} options.defaultLanguage - Default language for requests
      * @param {Object} options.auth - Authentication configuration
+     * @param {string} options.auth.method - Authentication method: 'oauth' (default), 'jwt', or 'nodehive-api-key'
+     * @param {string} options.auth.apiKey - NodeHive API Key (simplest method for server-to-server)
      * @param {string} options.auth.token - Bearer token for authentication
+     * @param {Object} options.auth.oauth - OAuth configuration
+     * @param {string} options.auth.oauth.grantType - OAuth grant type: 'password' (default) or 'client_credentials'
+     * @param {string} options.auth.oauth.clientId - OAuth client ID
+     * @param {string} options.auth.oauth.clientSecret - OAuth client secret
+     * @param {string} options.auth.oauth.scope - OAuth scope (optional, for client_credentials)
      * @param {Object} options.auth.storage - Storage adapter for auth persistence
      * @param {number} options.timeout - Request timeout in milliseconds
      * @param {Object} options.cache - Cache configuration
@@ -67,7 +74,12 @@ export class NodeHiveClient {
 
         // Initialize authentication manager
         const storageAdapter = this._createStorageAdapter(options.auth?.storage);
-        this.auth = new AuthManager(this, storageAdapter);
+        const authConfig = {
+            method: options.auth?.method,
+            oauth: options.auth?.oauth,
+            apiKey: options.auth?.apiKey
+        };
+        this.auth = new AuthManager(this, storageAdapter, authConfig);
 
         // Set initial token if provided
         if (options.auth?.token) {
@@ -81,6 +93,8 @@ export class NodeHiveClient {
         this.hasValidSession = this.auth.hasValidSession.bind(this.auth);
         this.getToken = this.auth.getToken.bind(this.auth);
         this.getUserDetails = this.auth.getUserDetails.bind(this.auth);
+        this.refreshToken = this.auth.refreshToken.bind(this.auth);
+        this.authenticateClientCredentials = this.auth.authenticateClientCredentials.bind(this.auth);
     }
 
     /**
@@ -185,6 +199,22 @@ export class NodeHiveClient {
             // Check response
             if (!response.ok) {
                 const errorBody = await response.json().catch(() => ({}));
+
+                // Handle OAuth token expiration (401 Unauthorized)
+                if (response.status === 401 && this.auth.authMethod === 'oauth' && retryCount === 0) {
+                    try {
+                        // Attempt to refresh the token
+                        await this.auth.refreshToken();
+                        // Retry the request with the new token
+                        return this.request(endpoint, { ...options, retryCount: retryCount + 1 });
+                    } catch (refreshError) {
+                        // If refresh fails, throw the original 401 error
+                        if (this.debug) {
+                            console.log('Token refresh failed:', refreshError.message);
+                        }
+                    }
+                }
+
                 const error = new NetworkError(
                     `HTTP ${response.status}: ${response.statusText}`,
                     response.status,

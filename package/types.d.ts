@@ -54,28 +54,120 @@ export interface CookieOptions {
 }
 
 // ===== Auth Types =====
+/**
+ * Login result from authentication methods
+ */
 export interface LoginResult {
     success: boolean;
     token: string;
-    user: any;
+    /**
+     * Authentication method used
+     */
+    method?: 'nodehive-api-key' | 'oauth' | 'jwt';
+    /**
+     * User details (may not be available for all methods)
+     */
+    user?: any;
+    /**
+     * OAuth refresh token (OAuth only)
+     */
+    refresh_token?: string;
+    /**
+     * Token expiration in seconds (OAuth only)
+     */
+    expires_in?: number;
+    /**
+     * Token type (usually 'Bearer')
+     */
+    token_type?: string;
+    /**
+     * OAuth scope granted
+     */
+    scope?: string;
 }
 
 export interface UserDetails {
-    uid: string;
-    email: string;
+    uid?: string;
+    email?: string;
+    authenticated?: boolean;
     [key: string]: any;
 }
 
+/**
+ * Authentication manager for NodeHiveClient
+ * Handles multiple authentication methods
+ */
 export class AuthManager {
-    constructor(client: NodeHiveClient, storageAdapter?: StorageAdapter);
-    login(email: string, password: string): Promise<LoginResult>;
+    client: NodeHiveClient;
+    storage: StorageAdapter;
+    token: string | null;
+    userDetails: UserDetails | null;
+    authMethod: 'nodehive-api-key' | 'oauth' | 'jwt';
+    oauthConfig: OAuthConfig;
+    apiKey: string | null;
+
+    constructor(client: NodeHiveClient, storageAdapter?: StorageAdapter | null, authConfig?: AuthOptions);
+
+    /**
+     * Login with username and password
+     * For OAuth or JWT authentication
+     */
+    login(username: string, password: string, options?: LoginOptions): Promise<LoginResult>;
+
+    /**
+     * Authenticate using OAuth Client Credentials Grant
+     * For service account / server-to-server authentication
+     */
+    authenticateClientCredentials(options?: LoginOptions): Promise<LoginResult>;
+
+    /**
+     * Refresh OAuth access token
+     */
+    refreshToken(): Promise<LoginResult>;
+
+    /**
+     * Logout and clear stored credentials
+     */
     logout(): Promise<void>;
+
+    /**
+     * Get current authentication token
+     */
     getToken(): Promise<string | null>;
+
+    /**
+     * Get current user details
+     */
     getUserDetails(): Promise<UserDetails | null>;
+
+    /**
+     * Check if user is logged in
+     */
     isLoggedIn(): Promise<boolean>;
+
+    /**
+     * Validate current session with server
+     */
     hasValidSession(): Promise<boolean>;
+
+    /**
+     * Fetch user details from server (JWT)
+     */
     fetchUserDetails(token: string): Promise<any>;
+
+    /**
+     * Fetch user details from server (OAuth)
+     */
+    fetchUserDetailsOAuth(token: string): Promise<any>;
+
+    /**
+     * Decode JWT token
+     */
     decodeJwt(token: string): any;
+
+    /**
+     * Set authentication token directly
+     */
     setToken(token: string): void;
 }
 
@@ -102,9 +194,105 @@ export interface EntityConfig {
     addInclude?: string[];
 }
 
+/**
+ * Authentication configuration for NodeHiveClient
+ *
+ * Supports multiple authentication methods:
+ * - NodeHive API Key (recommended - simplest)
+ * - OAuth 2.0 Password Grant (user authentication)
+ * - OAuth 2.0 Client Credentials (service account)
+ * - JWT (legacy)
+ */
 export interface AuthOptions {
+    /**
+     * Authentication method to use
+     * - 'nodehive-api-key': NodeHive API Key (recommended, simplest)
+     * - 'oauth': OAuth 2.0 (default, password or client_credentials grant)
+     * - 'jwt': JWT authentication (legacy, deprecated)
+     */
+    method?: 'nodehive-api-key' | 'oauth' | 'jwt';
+
+    /**
+     * NodeHive API Key for simple authentication
+     * This is the RECOMMENDED method for server-to-server authentication.
+     *
+     * @example
+     * ```ts
+     * auth: {
+     *   apiKey: 'nhk_your_api_key_here'
+     * }
+     * ```
+     */
+    apiKey?: string;
+
+    /**
+     * OAuth 2.0 configuration
+     * Supports both Password Grant and Client Credentials Grant
+     */
+    oauth?: OAuthConfig;
+
+    /**
+     * Pre-configured token (for JWT or OAuth)
+     * @deprecated Use apiKey or oauth configuration instead
+     */
     token?: string;
+
+    /**
+     * Storage adapter configuration for tokens
+     */
     storage?: StorageOptions;
+}
+
+/**
+ * OAuth 2.0 configuration
+ */
+export interface OAuthConfig {
+    /**
+     * OAuth grant type
+     * - 'password': User authentication with username/password
+     * - 'client_credentials': Service account / server-to-server
+     */
+    grantType?: 'password' | 'client_credentials';
+
+    /**
+     * OAuth client ID
+     */
+    clientId?: string;
+
+    /**
+     * OAuth client secret
+     */
+    clientSecret?: string;
+
+    /**
+     * OAuth scope (optional)
+     */
+    scope?: string;
+}
+
+/**
+ * Login options for different authentication methods
+ */
+export interface LoginOptions {
+    /**
+     * OAuth grant type override
+     */
+    grantType?: 'password' | 'client_credentials';
+
+    /**
+     * OAuth client ID override
+     */
+    clientId?: string;
+
+    /**
+     * OAuth client secret override
+     */
+    clientSecret?: string;
+
+    /**
+     * OAuth scope override
+     */
+    scope?: string;
 }
 
 export interface StorageOptions {
@@ -246,11 +434,39 @@ export class NodeHiveClient {
     paginate(method: string, args?: any[], pageSize?: number): AsyncGenerator<any>;
 
     // ===== Auth Methods (convenience bindings) =====
-    login(email: string, password: string): Promise<LoginResult>;
+    /**
+     * Login with username and password
+     * Or authenticate using OAuth Client Credentials (no username/password needed)
+     *
+     * @param email - Username/email (not needed for client_credentials grant)
+     * @param password - Password (not needed for client_credentials grant)
+     * @param options - Login options (OAuth configuration overrides)
+     */
+    login(email?: string, password?: string, options?: LoginOptions): Promise<LoginResult>;
+
+    /**
+     * Logout and clear authentication
+     */
     logout(): Promise<void>;
+
+    /**
+     * Check if user is logged in
+     */
     isLoggedIn(): Promise<boolean>;
+
+    /**
+     * Validate current session with server
+     */
     hasValidSession(): Promise<boolean>;
+
+    /**
+     * Get current authentication token
+     */
     getToken(): Promise<string | null>;
+
+    /**
+     * Get current user details
+     */
     getUserDetails(): Promise<UserDetails | null>;
 
     // ===== Deprecated Methods (for backwards compatibility) =====
@@ -297,10 +513,15 @@ declare module 'nodehive-js' {
         ValidationError,
         ConfigurationError,
         AuthManager,
+        AuthOptions,
+        OAuthConfig,
+        LoginOptions,
         StorageAdapter,
         MemoryStorage,
         BrowserStorage,
         CookieStorage,
+        CookieOptions,
+        StorageOptions,
         ApiResponse,
         RedirectData,
         RequestOptions,
