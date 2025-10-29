@@ -459,6 +459,13 @@ export class AuthManager {
   setToken(token) {
     this.token = token;
   }
+
+  isClientCredentialsGrant() {
+    return (
+      this.authMethod === "oauth" &&
+      this.oauthConfig.grantType === "client_credentials"
+    );
+  }
 }
 
 // Storage adapters
