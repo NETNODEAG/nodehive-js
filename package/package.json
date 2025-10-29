@@ -1,7 +1,7 @@
 {
   "name": "nodehive-js",
   "description": "Official JavaScript client library for NodeHive Headless CMS",
-  "version": "2.0.0-beta.6",
+  "version": "2.0.0-beta.8",
   "type": "module",
   "main": "index.js",
   "types": "types.d.ts",

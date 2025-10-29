@@ -1,4 +1,4 @@
-import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
+import { DrupalJsonApiParams } from "drupal-jsonapi-params";
 
 /**
  * Builds the query string for the API call using DrupalJsonApiParams.
@@ -6,8 +6,8 @@ import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
  * @returns {string} - The constructed query string.
  */
 export function buildQueryString(params) {
-    if (!(params instanceof DrupalJsonApiParams)) {
-        throw new Error("The 'params' must be an instance of DrupalJsonApiParams.");
-    }
-    return params.getQueryString({ encode: false });
+  if (!(params instanceof DrupalJsonApiParams)) {
+    throw new Error("The 'params' must be an instance of DrupalJsonApiParams.");
+  }
+  return params.getQueryString({ encode: false });
 }
