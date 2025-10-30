@@ -2,6 +2,17 @@ import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
 import { NetworkError, ValidationError, ConfigurationError } from './errors.js';
 import { AuthManager, MemoryStorage, BrowserStorage, CookieStorage } from './auth.js';
 
+// Import method modules
+import * as contentMethods from './methods/content.js';
+import * as menuMethods from './methods/menu.js';
+import * as taxonomyMethods from './methods/taxonomy.js';
+import * as mediaMethods from './methods/media.js';
+import * as textMethods from './methods/text.js';
+import * as fragmentMethods from './methods/fragment.js';
+import * as paragraphMethods from './methods/paragraph.js';
+import * as routerMethods from './methods/router.js';
+import * as batchMethods from './methods/batch.js';
+
 /**
  * NodeHive client for interacting with NodeHive/Drupal JSON:API
  */
@@ -95,6 +106,63 @@ export class NodeHiveClient {
         this.getUserDetails = this.auth.getUserDetails.bind(this.auth);
         this.refreshToken = this.auth.refreshToken.bind(this.auth);
         this.authenticateClientCredentials = this.auth.authenticateClientCredentials.bind(this.auth);
+
+        // Bind all API methods
+        this._bindMethods();
+    }
+
+    /**
+     * Bind all API methods from method modules
+     */
+    _bindMethods() {
+        // Content methods
+        this.getContentTypes = (...args) => contentMethods.getContentTypes(this, ...args);
+        this.getNodes = (...args) => contentMethods.getNodes(this, ...args);
+        this.getNode = (...args) => contentMethods.getNode(this, ...args);
+        this.getResourceBySlug = (...args) => contentMethods.getResourceBySlug(this, ...args);
+
+        // Menu methods
+        this.getAvailableMenus = (...args) => menuMethods.getAvailableMenus(this, ...args);
+        this.getMenus = (...args) => menuMethods.getMenus(this, ...args);
+        this.getMenuItems = (...args) => menuMethods.getMenuItems(this, ...args);
+        this.getMenuLinks = (...args) => menuMethods.getMenuLinks(this, ...args);
+        this.getMenuTree = (...args) => menuMethods.getMenuTree(this, ...args);
+        this.getMenu = (...args) => menuMethods.getMenu(this, ...args);
+
+        // Taxonomy methods
+        this.getTaxonomyVocabularies = (...args) => taxonomyMethods.getTaxonomyVocabularies(this, ...args);
+        this.getTaxonomyTerms = (...args) => taxonomyMethods.getTaxonomyTerms(this, ...args);
+        this.getTaxonomyTerm = (...args) => taxonomyMethods.getTaxonomyTerm(this, ...args);
+        this.getTaxonomies = (...args) => taxonomyMethods.getTaxonomies(this, ...args); // deprecated
+
+        // Media methods
+        this.getMedia = (...args) => mediaMethods.getMedia(this, ...args);
+        this.getMediaList = (...args) => mediaMethods.getMediaList(this, ...args);
+        this.getMedias = (...args) => mediaMethods.getMedias(this, ...args); // deprecated
+
+        // Text methods
+        this.getTexts = (...args) => textMethods.getTexts(this, ...args);
+        this.getText = (...args) => textMethods.getText(this, ...args);
+
+        // Fragment methods
+        this.getFragment = (...args) => fragmentMethods.getFragment(this, ...args);
+        this.getArea = (...args) => fragmentMethods.getArea(this, ...args);
+
+        // Paragraph methods
+        this.getParagraph = (...args) => paragraphMethods.getParagraph(this, ...args);
+
+        // Router methods
+        this.router = (...args) => routerMethods.router(this, ...args);
+        this.getRouteByPath = (...args) => routerMethods.getRouteByPath(this, ...args);
+        this.translatePath = (...args) => routerMethods.translatePath(this, ...args);
+        this.getPathAliases = (...args) => routerMethods.getPathAliases(this, ...args);
+        this.getRedirects = (...args) => routerMethods.getRedirects(this, ...args);
+        this.getRedirect = (...args) => routerMethods.getRedirect(this, ...args);
+        this.getTranslatedPaths = (...args) => routerMethods.getTranslatedPaths(this, ...args);
+
+        // Batch methods
+        this.batch = (...args) => batchMethods.batch(this, ...args);
+        this.paginate = (...args) => batchMethods.paginate(this, ...args);
     }
 
     /**
@@ -332,503 +400,9 @@ export class NodeHiveClient {
         );
     }
 
-    // ===== Content Methods =====
-
-    /**
-     * Get content types
-     */
-    async getContentTypes(options = {}) {
-        return this.request('/jsonapi/node_type/node_type', options);
-    }
-
-    /**
-     * Get nodes (list)
-     */
-    async getNodes(contentType, options = {}) {
-        if (!contentType) {
-            throw new ValidationError('Content type is required', 'contentType', contentType);
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `node-${contentType}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/node/${contentType}${queryString ? '?' + queryString : ''}${queryString ? '&' : '?'}jsonapi_include=1`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get single node
-     */
-    async getNode(uuid, contentType, options = {}) {
-        if (!uuid || !contentType) {
-            throw new ValidationError('UUID and content type are required');
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `node-${contentType}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/node/${contentType}/${uuid}${queryString ? '?' + queryString : ''}${queryString ? '&' : '?'}jsonapi_include=1`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get resource by slug (convenience method)
-     */
-    async getResourceBySlug(slug, options = {}) {
-        const { lang, ...requestOptions } = options;
-
-        try {
-            const routerResponse = await this.router(slug, { lang, ...requestOptions });
-
-            if (routerResponse?.entity?.uuid && routerResponse.entity.bundle) {
-                return this.getNode(
-                    routerResponse.entity.uuid,
-                    routerResponse.entity.bundle,
-                    options
-                );
-            }
-
-            return null;
-        } catch (error) {
-            if (this.debug) console.error('getResourceBySlug error:', error);
-            return null;
-        }
-    }
-
-    // ===== Menu Methods =====
-
-    /**
-     * Get available menus (legacy method name)
-     */
-    async getAvailableMenus(options = {}) {
-        return this.getMenus(options);
-    }
-
-    /**
-     * Get all menus
-     */
-    async getMenus(options = {}) {
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-
-        this._applyConfigToParams(params, 'menu');
-        const queryString = this._buildQueryString(params);
-        const includeParam = queryString ? '&jsonapi_include=1' : '?jsonapi_include=1';
-        const endpoint = `/jsonapi/menu/menu${queryString ? '?' + queryString : ''}${includeParam}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get menu items (legacy method name)
-     */
-    async getMenuItems(menuId, options = {}) {
-        return this.getMenuLinks(menuId, options);
-    }
-
-    /**
-     * Get menu links
-     */
-    async getMenuLinks(menuId, options = {}) {
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-
-        // Add menu filter if not already present
-        if (menuId && !params.getQueryString().includes('menu_name')) {
-            params.addFilter('menu_name', menuId);
-        }
-
-        this._applyConfigToParams(params, 'menu_link_content');
-        const queryString = this._buildQueryString(params);
-        const includeParam = queryString ? '&jsonapi_include=1' : '?jsonapi_include=1';
-        const endpoint = `/jsonapi/menu_link_content/menu_link_content${queryString ? '?' + queryString : ''}${includeParam}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get menu tree (hierarchical structure)
-     */
-    async getMenuTree(menuId, options = {}) {
-        const { lang, ...requestOptions } = options;
-
-        // This endpoint might vary based on Drupal configuration
-        // Fallback to menu links if tree endpoint doesn't exist
-        try {
-            const endpoint = `/jsonapi/menu_items/${menuId}?jsonapi_include=1`;
-            return await this.request(endpoint, { lang, ...requestOptions });
-        } catch (error) {
-            // Fallback to regular menu links
-            return this.getMenuLinks(menuId, options);
-        }
-    }
-
-    // ===== Taxonomy Methods =====
-
-    /**
-     * Get taxonomy vocabularies
-     */
-    async getTaxonomyVocabularies(options = {}) {
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-
-        this._applyConfigToParams(params, 'taxonomy_vocabulary');
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/taxonomy_vocabulary/taxonomy_vocabulary${queryString ? '?' + queryString : ''}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get taxonomy terms (renamed from getTaxonomies for clarity)
-     */
-    async getTaxonomyTerms(vocabularyId, options = {}) {
-        if (!vocabularyId) {
-            throw new ValidationError('Vocabulary ID is required', 'vocabularyId', vocabularyId);
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `taxonomy_term--${vocabularyId}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/taxonomy_term/${vocabularyId}${queryString ? '?' + queryString : ''}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get single taxonomy term
-     */
-    async getTaxonomyTerm(termId, vocabularyId, options = {}) {
-        if (!termId || !vocabularyId) {
-            throw new ValidationError('Term ID and vocabulary ID are required');
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `taxonomy_term--${vocabularyId}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/taxonomy_term/${vocabularyId}/${termId}${queryString ? '?' + queryString : ''}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    // ===== Media Methods =====
-
-    /**
-     * Get single media item
-     */
-    async getMedia(uuid, mediaType, options = {}) {
-        if (!uuid || !mediaType) {
-            throw new ValidationError('UUID and media type are required');
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `media-${mediaType}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/media/${mediaType}/${uuid}${queryString ? '?' + queryString : ''}${queryString ? '&' : '?'}jsonapi_include=1`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get media list (renamed from getMedias)
-     */
-    async getMediaList(mediaType, options = {}) {
-        if (!mediaType) {
-            throw new ValidationError('Media type is required', 'mediaType', mediaType);
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `media--${mediaType}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const includeParam = queryString ? '&jsonapi_include=1' : '?jsonapi_include=1';
-        const endpoint = `/jsonapi/media/${mediaType}${queryString ? '?' + queryString : ''}${includeParam}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Alias for backwards compatibility
-     * @deprecated Use getMediaList instead
-     */
-    async getMedias(mediaType, lang = null, params = new DrupalJsonApiParams()) {
-        console.warn('Deprecated: Use getMediaList() instead of getMedias()');
-        return this.getMediaList(mediaType, { lang, params });
-    }
-
-    // ===== Text Methods =====
-
-    /**
-     * Get texts (list)
-     */
-    async getTexts(options = {}) {
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-
-        this._applyConfigToParams(params, 'texts');
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/texts/texts${queryString ? '?' + queryString : ''}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get single text
-     */
-    async getText(uuid, options = {}) {
-        if (!uuid) {
-            throw new ValidationError('UUID is required', 'uuid', uuid);
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-
-        this._applyConfigToParams(params, 'texts');
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/texts/texts/${uuid}${queryString ? '?' + queryString : ''}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    // ===== Fragment Methods =====
-
-    /**
-     * Get fragment
-     */
-    async getFragment(uuid, fragmentType, options = {}) {
-        if (!uuid || !fragmentType) {
-            throw new ValidationError('UUID and fragment type are required');
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `nodehive_fragment--${fragmentType}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/nodehive_fragment/${fragmentType}/${uuid}${queryString ? '?' + queryString : ''}${queryString ? '&' : '?'}jsonapi_include=1`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get area with fragments
-     */
-    async getArea(uuid, options = {}) {
-        if (!uuid) {
-            throw new ValidationError('UUID is required', 'uuid', uuid);
-        }
-
-        const { lang, ...requestOptions } = options;
-        const endpoint = `/jsonapi/nodehive_area/nodehive_area/${uuid}?jsonapi_include=1&include=fragment_id`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    // ===== Paragraph Methods =====
-
-    /**
-     * Get paragraph
-     */
-    async getParagraph(uuid, paragraphType, options = {}) {
-        if (!uuid || !paragraphType) {
-            throw new ValidationError('UUID and paragraph type are required');
-        }
-
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-        const entityType = `paragraph-${paragraphType}`;
-
-        this._applyConfigToParams(params, entityType);
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/paragraph/${paragraphType}/${uuid}${queryString ? '?' + queryString : ''}${queryString ? '&' : '?'}jsonapi_include=1`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    // ===== Router Methods =====
-
-    /**
-     * Translate path to entity
-     */
-    async router(slug, options = {}) {
-        const { lang, ...requestOptions } = options;
-        const endpoint = `/router/translate-path?path=/${slug}`;
-
-        try {
-            return await this.request(endpoint, { lang, ...requestOptions });
-        } catch (error) {
-            if (this.debug) console.error('Router error:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Get route by path
-     */
-    async getRouteByPath(path, options = {}) {
-        const { lang, ...requestOptions } = options;
-        // Ensure path starts with /
-        const cleanPath = path.startsWith('/') ? path : `/${path}`;
-        const endpoint = `/router/translate-path?path=${encodeURIComponent(cleanPath)}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Translate path (alias to internal or vice versa)
-     */
-    async translatePath(path, language) {
-        const options = language ? { lang: language } : {};
-        return this.getRouteByPath(path, options);
-    }
-
-    /**
-     * Get all path aliases
-     */
-    async getPathAliases(options = {}) {
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-
-        this._applyConfigToParams(params, 'path_alias');
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/path_alias/path_alias${queryString ? '?' + queryString : ''}`;
-
-        return this.request(endpoint, { lang, ...requestOptions });
-    }
-
-    /**
-     * Get all redirects
-     */
-    async getRedirects(options = {}) {
-        const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
-
-        this._applyConfigToParams(params, 'redirect');
-        const queryString = this._buildQueryString(params);
-        const endpoint = `/jsonapi/redirect/redirect${queryString ? '?' + queryString : ''}`;
-
-        try {
-            return this.request(endpoint, { lang, ...requestOptions });
-        } catch (error) {
-            // Redirects might not be available on all Drupal instances
-            if (this.debug) console.error('Redirects not available:', error);
-            return { data: [], error: 'Redirect module may not be installed' };
-        }
-    }
-
-    /**
-     * Get redirect information
-     */
-    async getRedirect(slug, options = {}) {
-        const { lang, ...requestOptions } = options;
-
-        try {
-            const routerResponse = await this.router(slug, { lang, ...requestOptions });
-
-            if (routerResponse?.redirect?.[0]) {
-                const { from, to, status } = routerResponse.redirect[0];
-                return { from, to, status: Number(status) };
-            }
-
-            const currentPath = lang ? `/${lang}/${slug}` : `/${slug}`;
-            const routerEntityPath = routerResponse?.entity?.path;
-
-            if (routerEntityPath && routerEntityPath !== currentPath) {
-                return {
-                    from: currentPath,
-                    to: routerEntityPath,
-                    status: 301
-                };
-            }
-
-            return null;
-        } catch (error) {
-            if (this.debug) console.error('getRedirect error:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Get translated paths
-     */
-    async getTranslatedPaths(slug, options = {}) {
-        const endpoint = `/nodehive/api/translated-paths?path=${slug}`;
-        return this.request(endpoint, options);
-    }
-
-    // ===== Batch Operations =====
-
-    /**
-     * Fetch multiple resources in parallel
-     */
-    async batch(requests) {
-        return Promise.all(
-            requests.map(req => {
-                const { method, args = [] } = req;
-                return this[method](...args).catch(error => ({ error, request: req }));
-            })
-        );
-    }
-
-    // ===== Pagination Helpers =====
-
-    /**
-     * Get paginated results
-     */
-    async *paginate(method, args = [], pageSize = 50) {
-        // Handle different argument formats
-        let methodArgs = [...args];
-        let options = {};
-
-        // Check if last argument is an options object
-        if (methodArgs.length > 0 && typeof methodArgs[methodArgs.length - 1] === 'object' &&
-            !Array.isArray(methodArgs[methodArgs.length - 1]) &&
-            !(methodArgs[methodArgs.length - 1] instanceof DrupalJsonApiParams)) {
-            options = methodArgs.pop();
-        }
-
-        // Initialize or get params
-        const params = options.params || new DrupalJsonApiParams();
-        params.addPageLimit(pageSize);
-
-        let page = 0;
-        let hasMore = true;
-
-        while (hasMore) {
-            params.addPageOffset(page * pageSize);
-
-            // Build final arguments
-            const finalArgs = [...methodArgs];
-            if (method === 'getNodes' || method === 'getTaxonomyTerms') {
-                // These methods expect options object as second param
-                finalArgs.push({ ...options, params });
-            } else {
-                finalArgs.push(params);
-            }
-
-            const response = await this[method](...finalArgs);
-            yield response.data || response;
-
-            hasMore = response.links?.next !== undefined;
-            page++;
-        }
-    }
+    // ===== Taxonomy Methods (implemented in methods/taxonomy.js) =====
 
     // ===== Backwards Compatibility Methods =====
-
-    /**
-     * Get taxonomy list (legacy name)
-     * @deprecated Use getTaxonomyTerms instead
-     */
-    async getTaxonomies(taxonomyType, lang = null, params = new DrupalJsonApiParams()) {
-        console.warn('Deprecated: Use getTaxonomyTerms() instead of getTaxonomies()');
-        return this.getTaxonomyTerms(taxonomyType, { lang, params });
-    }
 
     /**
      * Get JWT access token

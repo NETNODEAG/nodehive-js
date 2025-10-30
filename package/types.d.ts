@@ -356,6 +356,23 @@ export interface ApiResponse<T = any> {
     }>;
 }
 
+/**
+ * Menu API v1 response structure
+ * Simplified menu structure from NodeHive API
+ */
+export interface MenuApiResponse {
+    menu_id: string;
+    language: string;
+    data: Array<{
+        title: string;
+        url: string;
+        description: string | null;
+        enabled: boolean;
+        expanded: boolean;
+        weight: string;
+    }>;
+}
+
 export interface RedirectData {
     from: string;
     to: string;
@@ -404,6 +421,7 @@ export class NodeHiveClient {
     getMenuItems(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
     getMenuLinks(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
     getMenuTree(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
+    getMenu(menuId: string, options?: RequestOptions): Promise<MenuApiResponse>;
 
     // ===== Taxonomy Methods =====
     getTaxonomyTerms(vocabularyId: string, options?: RequestOptions): Promise<ApiResponse>;
@@ -523,6 +541,7 @@ declare module 'nodehive-js' {
         CookieOptions,
         StorageOptions,
         ApiResponse,
+        MenuApiResponse,
         RedirectData,
         RequestOptions,
         LoginResult,
