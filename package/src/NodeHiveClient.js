@@ -231,6 +231,8 @@ export class NodeHiveClient {
         const token = await this.auth.getToken();
         if (token) {
             requestConfig.headers['Authorization'] = `Bearer ${token}`;
+        } else if (this.auth.isClientCredentialsGrant()) {
+            await this.authenticateClientCredentials();
         }
 
         // Add body if needed
@@ -272,7 +274,11 @@ export class NodeHiveClient {
                 if (response.status === 401 && this.auth.authMethod === 'oauth' && retryCount === 0) {
                     try {
                         // Attempt to refresh the token
-                        await this.auth.refreshToken();
+                        if (this.auth.isClientCredentialsGrant()) {
+                            await this.authenticateClientCredentials();
+                        } else {
+                            await this.auth.refreshToken();
+                        }
                         // Retry the request with the new token
                         return this.request(endpoint, { ...options, retryCount: retryCount + 1 });
                     } catch (refreshError) {
