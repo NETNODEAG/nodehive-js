@@ -49,6 +49,7 @@ export class CookieStorage implements StorageAdapter {
 export interface CookieOptions {
     maxAge?: number;
     path?: string;
+    httpOnly?: boolean;
     sameSite?: 'None' | 'Lax' | 'Strict';
     secure?: boolean;
 }
