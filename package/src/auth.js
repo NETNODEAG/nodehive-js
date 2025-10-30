@@ -197,18 +197,23 @@ export class AuthManager {
 
       const data = await response.json();
       this.token = data.access_token;
+      await this.storage.set("token", data.access_token, {
+        maxAge: data.expires_in,
+      });
 
       // Store refresh token if available
       if (data.refresh_token) {
-        await this.storage.set("refresh_token", data.refresh_token);
+        await this.storage.set("refresh_token", data.refresh_token, {
+          maxAge: 2592000,
+        });
       }
 
       // Fetch user details using the access token
       const userDetails = await this.fetchUserDetailsOAuth(data.access_token);
       this.userDetails = userDetails;
-
-      await this.storage.set("token", data.access_token);
-      await this.storage.set("userDetails", JSON.stringify(userDetails));
+      await this.storage.set("userDetails", JSON.stringify(userDetails), {
+        maxAge: data.expires_in,
+      });
 
       return {
         success: true,
@@ -264,12 +269,22 @@ export class AuthManager {
 
       const data = await response.json();
       this.token = data.access_token;
+      await this.storage.set("token", data.access_token, {
+        maxAge: data.expires_in,
+      });
 
       if (data.refresh_token) {
-        await this.storage.set("refresh_token", data.refresh_token);
+        await this.storage.set("refresh_token", data.refresh_token, {
+          maxAge: 2592000,
+        });
       }
 
-      await this.storage.set("token", data.access_token);
+      // Fetch user details using the access token
+      const userDetails = await this.fetchUserDetailsOAuth(data.access_token);
+      this.userDetails = userDetails;
+      await this.storage.set("userDetails", JSON.stringify(userDetails), {
+        maxAge: data.expires_in,
+      });
 
       return {
         success: true,
