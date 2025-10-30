@@ -1,6 +1,9 @@
 import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
 import { NetworkError, ValidationError, ConfigurationError } from './errors.js';
-import { AuthManager, MemoryStorage, BrowserStorage, CookieStorage } from './auth.js';
+import { AuthManager } from './auth.js';
+import { MemoryStorage } from './auth/storage/MemoryStorage.js';
+import { BrowserStorage } from './auth/storage/BrowserStorage.js';
+import { CookieStorage } from './auth/storage/CookieStorage.js';
 
 // Import method modules
 import * as contentMethods from './methods/content.js';

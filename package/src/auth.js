@@ -1,4 +1,5 @@
 import { AuthenticationError } from "./errors.js";
+import { MemoryStorage } from "./storage/MemoryStorage.js";
 
 export class AuthManager {
   constructor(client, storageAdapter = null, authConfig = {}) {
@@ -480,73 +481,5 @@ export class AuthManager {
       this.authMethod === "oauth" &&
       this.oauthConfig.grantType === "client_credentials"
     );
-  }
-}
-
-// Storage adapters
-export class MemoryStorage {
-  constructor() {
-    this.data = new Map();
-  }
-
-  async get(key) {
-    return this.data.get(key) || null;
-  }
-
-  async set(key, value) {
-    this.data.set(key, value);
-  }
-
-  async remove(key) {
-    this.data.delete(key);
-  }
-}
-
-export class BrowserStorage {
-  constructor(type = "localStorage") {
-    this.storage = type === "sessionStorage" ? sessionStorage : localStorage;
-  }
-
-  async get(key) {
-    return this.storage.getItem(key);
-  }
-
-  async set(key, value) {
-    this.storage.setItem(key, value);
-  }
-
-  async remove(key) {
-    this.storage.removeItem(key);
-  }
-}
-
-export class CookieStorage {
-  async get(key) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${key}=`);
-    if (parts.length === 2) {
-      return parts.pop().split(";").shift();
-    }
-    return null;
-  }
-
-  async set(key, value, options = {}) {
-    const {
-      maxAge = 31536000,
-      path = "/",
-      sameSite = "None",
-      secure = true,
-    } = options;
-
-    let cookie = `${key}=${value}; path=${path}`;
-    if (maxAge) cookie += `; max-age=${maxAge}`;
-    if (sameSite) cookie += `; SameSite=${sameSite}`;
-    if (secure) cookie += `; Secure`;
-
-    document.cookie = cookie;
-  }
-
-  async remove(key) {
-    document.cookie = `${key}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
   }
 }
