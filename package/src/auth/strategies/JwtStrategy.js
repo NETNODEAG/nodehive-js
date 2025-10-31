@@ -5,9 +5,9 @@ export class JwtStrategy {
     this.authManager = authManager;
   }
 
-  async login(email, password) {
+  async login(email, password, options = {}) {
     try {
-      const { client } = this.authManager;
+      const { client, session } = this.authManager;
       // Use btoa for browser compatibility, or Buffer in Node.js
       const loginData =
         typeof Buffer !== "undefined"
@@ -26,10 +26,14 @@ export class JwtStrategy {
       }
 
       const data = await response.json();
-      await this.authManager.setToken(data.token);
+      await this.authManager.setToken(data.token, {
+        maxAge: options.tokenMaxAge || session.tokenMaxAge,
+      });
 
       const userDetails = await this.fetchUserDetails(data.token);
-      await this.authManager.setUserDetails(userDetails);
+      await this.authManager.setUserDetails(userDetails, {
+        maxAge: options.tokenMaxAge || session.tokenMaxAge,
+      });
 
       return {
         success: true,

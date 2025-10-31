@@ -37,6 +37,9 @@ export class NodeHiveClient {
      * @param {string} options.auth.oauth.clientSecret - OAuth client secret
      * @param {string} options.auth.oauth.scope - OAuth scope (optional, for client_credentials)
      * @param {Object} options.auth.storage - Storage adapter for auth persistence
+     * @param {Object} options.auth.session - Session configuration
+     * @param {number} options.auth.session.tokenMaxAge - Max age for storing the auth token (in seconds)
+     * @param {number} options.auth.session.refreshTokenMaxAge - Max age for storing the refresh token (in seconds)
      * @param {number} options.timeout - Request timeout in milliseconds
      * @param {Object} options.cache - Cache configuration
      * @param {Object} options.retry - Retry configuration
@@ -91,7 +94,11 @@ export class NodeHiveClient {
         const authConfig = {
             method: options.auth?.method,
             oauth: options.auth?.oauth,
-            apiKey: options.auth?.apiKey
+            apiKey: options.auth?.apiKey,
+            session: {
+              tokenMaxAge: options.auth?.session?.tokenMaxAge,
+              refreshTokenMaxAge: options.auth?.session?.refreshTokenMaxAge,
+            }
         };
         this.auth = new AuthManager(this, storageAdapter, authConfig);
 

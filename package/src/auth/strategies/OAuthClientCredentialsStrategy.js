@@ -7,10 +7,7 @@ export class OAuthClientCredentialsStrategy {
 
   async login(options = {}) {
     try {
-      const refreshTokenMaxAge =
-        options.refreshTokenMaxAge || 30 * 24 * 60 * 60; // 30 days in seconds
-      const tokenMaxAge = options.tokenMaxAge || 60 * 60; // 1 hour in seconds
-      const { client, oauthConfig } = this.authManager;
+      const { client, oauthConfig, session } = this.authManager;
       const clientId = options.clientId || oauthConfig.clientId;
       const clientSecret = options.clientSecret || oauthConfig.clientSecret;
       const scope = options.scope || oauthConfig.scope || "";
@@ -47,23 +44,16 @@ export class OAuthClientCredentialsStrategy {
 
       const data = await response.json();
       await this.authManager.setToken(data.access_token, {
-        maxAge: data.expires_in || tokenMaxAge,
+        maxAge:
+          options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
       });
-
-      // Client credentials typically don't have refresh tokens
-      // But store it if provided
-      if (data.refresh_token) {
-        await this.authManager.setRefreshToken(data.refresh_token, {
-          maxAge: refreshTokenMaxAge,
-        });
-      }
 
       return {
         success: true,
         token: data.access_token,
-        expires_in: data.expires_in || tokenMaxAge,
-        refresh_token: data.refresh_token || null,
-        token_type: data.token_type, // TODO use this somewhere?
+        expires_in:
+          options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
+        token_type: data.token_type,
         scope: data.scope,
       };
     } catch (error) {

@@ -7,10 +7,7 @@ export class OAuthPasswordStrategy {
 
   async login(username, password, options = {}) {
     try {
-      const { client, oauthConfig } = this.authManager;
-      const refreshTokenMaxAge =
-        options.refreshTokenMaxAge || 30 * 24 * 60 * 60; // 30 days in seconds
-      const tokenMaxAge = options.tokenMaxAge || 60 * 60; // 1 hour in seconds
+      const { client, oauthConfig, session } = this.authManager;
       const clientId = options.clientId || oauthConfig.clientId;
       const clientSecret = options.clientSecret || oauthConfig.clientSecret;
       const scope = options.scope || oauthConfig.scope || "";
@@ -48,27 +45,28 @@ export class OAuthPasswordStrategy {
 
       const data = await response.json();
       await this.authManager.setToken(data.access_token, {
-        maxAge: data.expires_in || tokenMaxAge,
+        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
       });
 
       // Store refresh token if available
       if (data.refresh_token) {
         await this.authManager.setRefreshToken(data.refresh_token, {
-          maxAge: refreshTokenMaxAge,
+          maxAge: options.refreshTokenMaxAge || session.refreshTokenMaxAge,
         });
       }
 
       // Fetch user details using the access token
       const userDetails = await this.fetchUserDetails(data.access_token);
       await this.authManager.setUserDetails(userDetails, {
-        maxAge: data.expires_in || tokenMaxAge,
+        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
       });
 
       return {
         success: true,
         token: data.access_token,
         refresh_token: data.refresh_token,
-        expires_in: data.expires_in || tokenMaxAge,
+        expires_in:
+          options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
         user: userDetails,
       };
     } catch (error) {
@@ -81,10 +79,7 @@ export class OAuthPasswordStrategy {
 
   async refreshToken(options = {}) {
     try {
-      const refreshTokenMaxAge =
-        options.refreshTokenMaxAge || 30 * 24 * 60 * 60; // 30 days in seconds
-      const tokenMaxAge = options.tokenMaxAge || 60 * 60; // 1 hour in seconds
-      const { client, oauthConfig } = this.authManager;
+      const { client, oauthConfig, session } = this.authManager;
       const refreshToken = await this.authManager.getRefreshToken();
       if (!refreshToken) {
         throw new AuthenticationError("No refresh token available");
@@ -111,25 +106,27 @@ export class OAuthPasswordStrategy {
 
       const data = await response.json();
       await this.authManager.setToken(data.access_token, {
-        maxAge: data.expires_in || tokenMaxAge,
+        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
       });
 
       if (data.refresh_token) {
         await this.authManager.setRefreshToken(data.refresh_token, {
-          maxAge: refreshTokenMaxAge,
+          maxAge: options.refreshTokenMaxAge || session.refreshTokenMaxAge,
         });
       }
 
       const userDetails = await this.fetchUserDetails(data.access_token);
       await this.authManager.setUserDetails(userDetails, {
-        maxAge: data.expires_in || tokenMaxAge,
+        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
       });
 
       return {
         success: true,
         token: data.access_token,
+        token_type: data.token_type,
         refresh_token: data.refresh_token,
-        expires_in: data.expires_in || tokenMaxAge,
+        expires_in:
+          options.tokenMaxAge || oauthConfig.tokenMaxAge || data.expires_in,
         user: userDetails,
       };
     } catch (error) {

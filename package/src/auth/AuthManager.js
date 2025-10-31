@@ -17,6 +17,7 @@ export class AuthManager {
     this.refreshToken = null;
     this.userDetails = null;
     this.strategy = this._setStrategy(this.authMethod);
+    this.session = authConfig.session || null;
   }
 
   async setToken(token, options = {}) {
