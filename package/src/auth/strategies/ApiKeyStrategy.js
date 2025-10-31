@@ -3,18 +3,26 @@ import { AuthenticationError } from "../../errors.js";
 export class ApiKeyStrategy {
   constructor(authManager) {
     this.authManager = authManager;
-    const apiKey = authManager.authConfig?.apiKey;
+    this.apiKey = authManager.authConfig?.apiKey;
 
-    if (apiKey) {
-      authManager.setToken(apiKey);
+    if (this.apiKey) {
+      authManager.setToken(this.apiKey);
     }
   }
 
-  async login() {
-    const token = await this.authManager.getToken();
-    if (!token) {
-      throw new AuthenticationError("NodeHive API Key is not configured");
-    }
-    return { success: true, token };
+  async login(username, password, options = {}) {
+    throw new AuthenticationError("API Key strategy does not support login");
+  }
+
+  async refreshToken(options = {}) {
+    throw new AuthenticationError(
+      "API Key strategy does not support token refresh"
+    );
+  }
+
+  async fetchUserDetails(token) {
+    throw new AuthenticationError(
+      "API Key strategy does not support fetching user details"
+    );
   }
 }

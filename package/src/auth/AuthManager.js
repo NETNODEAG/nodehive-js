@@ -14,7 +14,7 @@ export class AuthManager {
     this.oauthConfig = authConfig.oauth || {};
     this.apiKey = authConfig.apiKey || null;
     this.token = null;
-    this.refreshToken = null;
+    this.refreshTokenValue = null;
     this.userDetails = null;
     this.strategy = this._setStrategy(this.authMethod);
     this.session = authConfig.session || null;
@@ -37,19 +37,19 @@ export class AuthManager {
   }
 
   async setRefreshToken(refreshToken, options = {}) {
-    this.refreshToken = refreshToken;
+    this.refreshTokenValue = refreshToken;
     await this.storage.set("refresh_token", refreshToken, options);
   }
 
   async getRefreshToken() {
-    if (this.refreshToken) {
-      return this.refreshToken;
+    if (this.refreshTokenValue) {
+      return this.refreshTokenValue;
     }
     const stored = await this.storage.get("refresh_token");
     if (stored) {
-      this.refreshToken = stored;
+      this.refreshTokenValue = stored;
     }
-    return this.refreshToken;
+    return this.refreshTokenValue;
   }
 
   async setUserDetails(userDetails, options = {}) {
@@ -77,21 +77,16 @@ export class AuthManager {
   }
 
   async login(username, password, options = {}) {
-    return this.strategy.login({ username, password, ...options });
+    return this.strategy.login(username, password, options);
   }
 
   async refreshToken(options = {}) {
-    if (typeof this.strategy.refreshToken !== "function") {
-      throw new AuthenticationError(
-        "This authentication strategy does not support token refresh"
-      );
-    }
     return this.strategy.refreshToken(options);
   }
 
   async logout() {
     this.token = null;
-    this.refreshToken = null;
+    this.refreshTokenValue = null;
     this.userDetails = null;
     await this.storage.remove("token");
     await this.storage.remove("userDetails");
@@ -122,11 +117,6 @@ export class AuthManager {
   }
 
   async fetchUserDetails(token) {
-    if (typeof this.strategy.fetchUserDetails !== "function") {
-      throw new AuthenticationError(
-        "This authentication strategy does not support fetching user details"
-      );
-    }
     return this.strategy.fetchUserDetails(token);
   }
 
@@ -154,6 +144,13 @@ export class AuthManager {
     }
   }
 
+  isClientCredentialsGrant() {
+    return (
+      this.authMethod === "oauth" &&
+      this.oauthConfig.grantType === "client_credentials"
+    );
+  }
+
   _setStrategy(authMethod) {
     switch (authMethod) {
       case "nodehive-api-key":
@@ -161,8 +158,7 @@ export class AuthManager {
       case "jwt":
         return new JwtStrategy(this);
       case "oauth":
-        const grantType = this.oauthConfig.grantType;
-        return grantType === "client_credentials"
+        this.isClientCredentialsGrant()
           ? new OAuthClientCredentialsStrategy(this)
           : new OAuthPasswordStrategy(this);
       default:

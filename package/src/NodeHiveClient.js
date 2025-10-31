@@ -115,7 +115,6 @@ export class NodeHiveClient {
         this.getToken = this.auth.getToken.bind(this.auth);
         this.getUserDetails = this.auth.getUserDetails.bind(this.auth);
         this.refreshToken = this.auth.refreshToken.bind(this.auth);
-        this.authenticateClientCredentials = this.auth.authenticateClientCredentials.bind(this.auth);
 
         // Bind all API methods
         this._bindMethods();
@@ -237,12 +236,16 @@ export class NodeHiveClient {
             requestConfig.timeoutId = timeoutId;
         }
 
+        // Automatically authenticate client credentials if needed
+        let token = await this.auth.getToken();
+        if (!token && this.auth.isClientCredentialsGrant()) {
+          await this.auth.login();
+          token = await this.auth.getToken();
+        }
+
         // Add authentication
-        const token = await this.auth.getToken();
         if (token) {
             requestConfig.headers['Authorization'] = `Bearer ${token}`;
-        } else if (this.auth.isClientCredentialsGrant()) {
-            await this.authenticateClientCredentials();
         }
 
         // Add body if needed
@@ -284,11 +287,8 @@ export class NodeHiveClient {
                 if (response.status === 401 && this.auth.authMethod === 'oauth' && retryCount === 0) {
                     try {
                         // Attempt to refresh the token
-                        if (this.auth.isClientCredentialsGrant()) {
-                            await this.authenticateClientCredentials();
-                        } else {
-                            await this.auth.refreshToken();
-                        }
+                        await this.auth.refreshToken();
+
                         // Retry the request with the new token
                         return this.request(endpoint, { ...options, retryCount: retryCount + 1 });
                     } catch (refreshError) {

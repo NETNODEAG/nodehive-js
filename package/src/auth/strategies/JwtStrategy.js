@@ -5,14 +5,14 @@ export class JwtStrategy {
     this.authManager = authManager;
   }
 
-  async login(email, password, options = {}) {
+  async login(username, password, options = {}) {
     try {
       const { client, session } = this.authManager;
       // Use btoa for browser compatibility, or Buffer in Node.js
       const loginData =
         typeof Buffer !== "undefined"
-          ? Buffer.from(`${email}:${password}`).toString("base64")
-          : btoa(`${email}:${password}`);
+          ? Buffer.from(`${username}:${password}`).toString("base64")
+          : btoa(`${username}:${password}`);
       const response = await fetch(`${client.baseUrl}/jwt/token?_format=json`, {
         method: "GET",
         headers: {
@@ -43,6 +43,12 @@ export class JwtStrategy {
     } catch (error) {
       throw new AuthenticationError(`Login failed: ${error.message}`);
     }
+  }
+
+  async refreshToken(options = {}) {
+    throw new AuthenticationError(
+      "JWT strategy does not support token refresh"
+    );
   }
 
   async fetchUserDetails(token) {

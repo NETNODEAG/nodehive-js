@@ -5,7 +5,7 @@ export class OAuthClientCredentialsStrategy {
     this.authManager = authManager;
   }
 
-  async login(options = {}) {
+  async login(username, password, options = {}) {
     try {
       const { client, oauthConfig, session } = this.authManager;
       const clientId = options.clientId || oauthConfig.clientId;
@@ -44,8 +44,7 @@ export class OAuthClientCredentialsStrategy {
 
       const data = await response.json();
       await this.authManager.setToken(data.access_token, {
-        maxAge:
-          options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
+        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
       });
 
       return {
@@ -66,9 +65,13 @@ export class OAuthClientCredentialsStrategy {
     }
   }
 
-  async refreshToken() {
+  async refreshToken(options = {}) {
+    return this.login(undefined, undefined, options);
+  }
+
+  async fetchUserDetails() {
     throw new AuthenticationError(
-      "Token refresh is not supported for client credentials grant"
+      "Fetching user details is not supported for client credentials grant"
     );
   }
 }
