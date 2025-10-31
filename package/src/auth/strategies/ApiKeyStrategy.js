@@ -6,12 +6,22 @@ export class ApiKeyStrategy {
     this.apiKey = authManager.authConfig?.apiKey;
 
     if (this.apiKey) {
-      authManager.setToken(this.apiKey);
+      authManager.setToken(this.apiKey).catch((error) => {
+        console.error("Failed to set API key token in storage", error);
+        throw error;
+      });
     }
   }
 
   async login(username, password, options = {}) {
-    throw new AuthenticationError("API Key strategy does not support login");
+    if (!this.apiKey) {
+      throw new AuthenticationError("API key is required for API Key strategy");
+    }
+
+    return {
+      success: true,
+      token: this.apiKey,
+    };
   }
 
   async refreshToken(options = {}) {
