@@ -26,18 +26,23 @@ export class JwtStrategy {
       }
 
       const data = await response.json();
-      await this.authManager.setToken(data.token, {
-        maxAge: options.tokenMaxAge || session.tokenMaxAge,
-      });
+      const maxAge = this.authManager.resolveMaxAge(
+        options?.tokenMaxAge,
+        session?.tokenMaxAge
+      );
+      const tokenOptions = maxAge ? { maxAge: maxAge } : undefined;
+      await this.authManager.setToken(data.token, tokenOptions);
 
       const userDetails = await this.fetchUserDetails(data.token);
-      await this.authManager.setUserDetails(userDetails, {
-        maxAge: options.tokenMaxAge || session.tokenMaxAge,
-      });
+      await this.authManager.setUserDetails(userDetails, tokenOptions);
+
+      const expiresAt = maxAge ? Date.now() + maxAge * 1000 : null;
+      await this.authManager.setTokenExpiresAt(expiresAt);
 
       return {
         success: true,
         token: data.token,
+        expires_in: maxAge ?? null,
         user: userDetails,
       };
     } catch (error) {

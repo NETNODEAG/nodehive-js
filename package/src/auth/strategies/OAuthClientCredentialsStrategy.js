@@ -43,15 +43,21 @@ export class OAuthClientCredentialsStrategy {
       }
 
       const data = await response.json();
-      await this.authManager.setToken(data.access_token, {
-        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
-      });
+      const maxAge = this.authManager.resolveMaxAge(
+        options?.tokenMaxAge,
+        session?.tokenMaxAge,
+        data?.expires_in
+      );
+      const tokenOptions = maxAge ? { maxAge: maxAge } : undefined;
+      await this.authManager.setToken(data.access_token, tokenOptions);
+
+      const expiresAt = maxAge ? Date.now() + maxAge * 1000 : null;
+      await this.authManager.setTokenExpiresAt(expiresAt);
 
       return {
         success: true,
         token: data.access_token,
-        expires_in:
-          options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
+        expires_in: maxAge ?? null,
         token_type: data.token_type,
         scope: data.scope,
       };

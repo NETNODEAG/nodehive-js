@@ -14,6 +14,7 @@ export class AuthManager {
     this.oauthConfig = authConfig.oauth || {};
     this.apiKey = authConfig.apiKey || null;
     this.token = null;
+    this.tokenExpiresAt = null;
     this.refreshTokenValue = null;
     this.userDetails = null;
     this.strategy = this._setStrategy(this.authMethod);
@@ -21,8 +22,12 @@ export class AuthManager {
   }
 
   async setToken(token, options = {}) {
-    this.token = token;
-    await this.storage.set("token", token, options);
+    this.token = token ?? null;
+    if (token) {
+      await this.storage.set("token", token, options);
+    } else {
+      await this.storage.remove("token");
+    }
   }
 
   async getToken() {
@@ -36,9 +41,36 @@ export class AuthManager {
     return this.token;
   }
 
+  async setTokenExpiresAt(timestamp) {
+    this.tokenExpiresAt = timestamp ?? null;
+    if (timestamp) {
+      await this.storage.set("token_expires_at", String(timestamp));
+    } else {
+      await this.storage.remove("token_expires_at");
+    }
+  }
+
+  async getTokenExpiresAt() {
+    if (this.tokenExpiresAt) {
+      return this.tokenExpiresAt;
+    }
+    const stored = await this.storage.get("token_expires_at");
+    if (stored) {
+      const numeric = Number(stored);
+      if (Number.isFinite(numeric)) {
+        this.tokenExpiresAt = numeric;
+      }
+    }
+    return this.tokenExpiresAt;
+  }
+
   async setRefreshToken(refreshToken, options = {}) {
-    this.refreshTokenValue = refreshToken;
-    await this.storage.set("refresh_token", refreshToken, options);
+    this.refreshTokenValue = refreshToken ?? null;
+    if (refreshToken) {
+      await this.storage.set("refresh_token", refreshToken, options);
+    } else {
+      await this.storage.remove("refresh_token");
+    }
   }
 
   async getRefreshToken() {
@@ -53,12 +85,16 @@ export class AuthManager {
   }
 
   async setUserDetails(userDetails, options = {}) {
-    this.userDetails = userDetails;
-    const userDetailsString =
-      typeof userDetails === "string"
-        ? userDetails
-        : JSON.stringify(userDetails);
-    await this.storage.set("userDetails", userDetailsString, options);
+    this.userDetails = userDetails ?? null;
+    if (userDetails) {
+      const userDetailsString =
+        typeof userDetails === "string"
+          ? userDetails
+          : JSON.stringify(userDetails);
+      await this.storage.set("userDetails", userDetailsString, options);
+    } else {
+      await this.storage.remove("userDetails");
+    }
   }
 
   async getUserDetails() {
@@ -85,12 +121,10 @@ export class AuthManager {
   }
 
   async logout() {
-    this.token = null;
-    this.refreshTokenValue = null;
-    this.userDetails = null;
-    await this.storage.remove("token");
-    await this.storage.remove("userDetails");
-    await this.storage.remove("refresh_token");
+    await this.setToken(null);
+    await this.setTokenExpiresAt(null);
+    await this.setRefreshToken(null);
+    await this.setUserDetails(null);
   }
 
   async isLoggedIn() {
@@ -98,6 +132,16 @@ export class AuthManager {
     if (!token) return false;
 
     return !!token;
+  }
+
+  async isTokenExpired() {
+    const expiresAt = await this.getTokenExpiresAt();
+    if (!expiresAt) return false;
+
+    const numeric = Number(expiresAt);
+    if (!Number.isFinite(numeric)) return false;
+
+    return Date.now() >= numeric;
   }
 
   decodeJwt(token) {
@@ -151,6 +195,14 @@ export class AuthManager {
     );
   }
 
+  resolveMaxAge(...candidates) {
+    for (const ttl of candidates) {
+      const numeric = Number(ttl);
+      if (Number.isFinite(numeric) && numeric > 0) return numeric;
+    }
+    return null;
+  }
+
   _setStrategy(authMethod) {
     switch (authMethod) {
       case "nodehive-api-key":
@@ -158,7 +210,7 @@ export class AuthManager {
       case "jwt":
         return new JwtStrategy(this);
       case "oauth":
-        this.isClientCredentialsGrant()
+        return this.isClientCredentialsGrant()
           ? new OAuthClientCredentialsStrategy(this)
           : new OAuthPasswordStrategy(this);
       default:

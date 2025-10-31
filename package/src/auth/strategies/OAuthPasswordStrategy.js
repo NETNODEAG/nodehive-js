@@ -44,29 +44,39 @@ export class OAuthPasswordStrategy {
       }
 
       const data = await response.json();
-      await this.authManager.setToken(data.access_token, {
-        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
-      });
+      const maxAge = this.authManager.resolveMaxAge(
+        options?.tokenMaxAge,
+        session?.tokenMaxAge,
+        data?.expires_in
+      );
+      const tokenOptions = maxAge ? { maxAge: maxAge } : undefined;
+      await this.authManager.setToken(data.access_token, tokenOptions);
 
-      // Store refresh token if available
       if (data.refresh_token) {
-        await this.authManager.setRefreshToken(data.refresh_token, {
-          maxAge: options.refreshTokenMaxAge || session.refreshTokenMaxAge,
-        });
+        const refreshTokenMaxAge = this.authManager.resolveMaxAge(
+          options?.refreshTokenMaxAge,
+          session?.refreshTokenMaxAge
+        );
+        const refreshTokenOptions = refreshTokenMaxAge
+          ? { maxAge: refreshTokenMaxAge }
+          : undefined;
+        await this.authManager.setRefreshToken(
+          data.refresh_token,
+          refreshTokenOptions
+        );
       }
 
-      // Fetch user details using the access token
       const userDetails = await this.fetchUserDetails(data.access_token);
-      await this.authManager.setUserDetails(userDetails, {
-        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
-      });
+      await this.authManager.setUserDetails(userDetails, tokenOptions);
+
+      const expiresAt = maxAge ? Date.now() + maxAge * 1000 : null;
+      await this.authManager.setTokenExpiresAt(expiresAt);
 
       return {
         success: true,
         token: data.access_token,
         refresh_token: data.refresh_token,
-        expires_in:
-          options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
+        expires_in: maxAge ?? null,
         user: userDetails,
       };
     } catch (error) {
@@ -105,28 +115,40 @@ export class OAuthPasswordStrategy {
       }
 
       const data = await response.json();
-      await this.authManager.setToken(data.access_token, {
-        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
-      });
+      const maxAge = this.authManager.resolveMaxAge(
+        options?.tokenMaxAge,
+        session?.tokenMaxAge,
+        data?.expires_in
+      );
+      const tokenOptions = maxAge ? { maxAge: maxAge } : undefined;
+      await this.authManager.setToken(data.access_token, tokenOptions);
 
       if (data.refresh_token) {
-        await this.authManager.setRefreshToken(data.refresh_token, {
-          maxAge: options.refreshTokenMaxAge || session.refreshTokenMaxAge,
-        });
+        const refreshTokenMaxAge = this.authManager.resolveMaxAge(
+          options?.refreshTokenMaxAge,
+          session?.refreshTokenMaxAge
+        );
+        const refreshTokenOptions = refreshTokenMaxAge
+          ? { maxAge: refreshTokenMaxAge }
+          : undefined;
+        await this.authManager.setRefreshToken(
+          data.refresh_token,
+          refreshTokenOptions
+        );
       }
 
       const userDetails = await this.fetchUserDetails(data.access_token);
-      await this.authManager.setUserDetails(userDetails, {
-        maxAge: options.tokenMaxAge || session.tokenMaxAge || data.expires_in,
-      });
+      await this.authManager.setUserDetails(userDetails, tokenOptions);
+
+      const expiresAt = maxAge ? Date.now() + maxAge * 1000 : null;
+      await this.authManager.setTokenExpiresAt(expiresAt);
 
       return {
         success: true,
         token: data.access_token,
         token_type: data.token_type,
         refresh_token: data.refresh_token,
-        expires_in:
-          options.tokenMaxAge || oauthConfig.tokenMaxAge || data.expires_in,
+        expires_in: maxAge ?? null,
         user: userDetails,
       };
     } catch (error) {
