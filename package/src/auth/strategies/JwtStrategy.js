@@ -49,12 +49,13 @@ export class JwtStrategy {
     try {
       const { client } = this.authManager;
       const decodedJwt = this.authManager.decodeJwt(token);
-      if (!decodedJwt?.drupal?.uid) {
+      const uid = decodedJwt?.drupal?.uid;
+      if (!uid) {
         throw new AuthenticationError("Invalid token structure");
       }
 
       const response = await fetch(
-        `${client.baseUrl}/user/${decodedJwt.drupal.uid}?_format=json`,
+        `${client.baseUrl}/user/${uid}?_format=json`,
         {
           headers: {
             "Content-Type": "application/json",

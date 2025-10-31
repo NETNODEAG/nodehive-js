@@ -137,8 +137,14 @@ export class OAuthPasswordStrategy {
   async fetchUserDetails(token) {
     try {
       const { client } = this.authManager;
+      const decodedJwt = this.authManager.decodeJwt(token);
+      const uid = decodedJwt?.sub;
+      if (!uid) {
+        throw new AuthenticationError("Invalid token structure");
+      }
+
       const response = await fetch(
-        `${client.baseUrl}/oauth/userinfo?_format=json`,
+        `${client.baseUrl}/user/${uid}?_format=json`,
         {
           headers: {
             "Content-Type": "application/json",

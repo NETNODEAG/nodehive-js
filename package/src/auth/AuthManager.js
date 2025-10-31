@@ -130,7 +130,6 @@ export class AuthManager {
     return this.strategy.fetchUserDetails(token);
   }
 
-  // TODO Check if this is needed
   async hasValidSession() {
     try {
       const token = await this.getToken();
