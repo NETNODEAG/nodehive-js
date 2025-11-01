@@ -52,7 +52,7 @@ export class OAuthClientCredentialsStrategy {
       await this.authManager.setToken(data.access_token, tokenOptions);
 
       const expiresAt = maxAge ? Date.now() + maxAge * 1000 : null;
-      await this.authManager.setTokenExpiresAt(expiresAt);
+      await this.authManager.setTokenExpiresAt(expiresAt, tokenOptions);
 
       return {
         success: true,

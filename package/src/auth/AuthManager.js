@@ -41,10 +41,10 @@ export class AuthManager {
     return this.token;
   }
 
-  async setTokenExpiresAt(timestamp) {
+  async setTokenExpiresAt(timestamp, options = {}) {
     this.tokenExpiresAt = timestamp ?? null;
     if (timestamp) {
-      await this.storage.set("token_expires_at", String(timestamp));
+      await this.storage.set("token_expires_at", String(timestamp), options);
     } else {
       await this.storage.remove("token_expires_at");
     }
