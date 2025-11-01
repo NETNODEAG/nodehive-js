@@ -417,8 +417,6 @@ export class NodeHiveClient {
         );
     }
 
-    // ===== Taxonomy Methods (implemented in methods/taxonomy.js) =====
-
     // ===== Backwards Compatibility Methods =====
 
     /**
@@ -436,15 +434,24 @@ export class NodeHiveClient {
     }
 
     // Legacy cookie methods for backwards compatibility
+    /**
+     * @deprecated Use auth methods instead
+     */
     storeUserDetails() {
         console.warn('Deprecated: User details are now handled automatically');
     }
 
+    /**
+     * @deprecated Use auth.logout() instead
+     */
     clearUserDetails() {
         console.warn('Deprecated: Use logout() instead');
         this.logout();
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     getCookie(name) {
         console.warn('Deprecated: Cookie access is now handled internally');
         if (typeof document === 'undefined') return null;
@@ -453,6 +460,9 @@ export class NodeHiveClient {
         return parts.length === 2 ? parts.pop().split(';').shift() : null;
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     getAllCookieData() {
         console.warn('Deprecated: Cookie access is now handled internally');
         if (typeof document === 'undefined') return {};
@@ -465,16 +475,25 @@ export class NodeHiveClient {
         return cookieData;
     }
 
+    /**
+     * @deprecated Implement role checking in your application
+     */
     hasRole() {
         console.warn('Deprecated: Implement role checking in your application');
         return false;
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     decodeJwt(token) {
         console.warn('Deprecated: JWT decoding is now handled internally');
         return this.auth.decodeJwt(token);
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     fetchUserDetails(token) {
         console.warn('Deprecated: User details fetching is now handled internally');
         return this.auth.fetchUserDetails(token);
