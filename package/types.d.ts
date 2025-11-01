@@ -100,76 +100,69 @@ export interface UserDetails {
  */
 export class AuthManager {
     client: NodeHiveClient;
+    authConfig: AuthOptions;
     storage: StorageAdapter;
-    token: string | null;
-    userDetails: UserDetails | null;
     authMethod: 'nodehive-api-key' | 'oauth' | 'jwt';
     oauthConfig: OAuthConfig;
     apiKey: string | null;
+    token: string | null;
+    tokenExpiresAt: number | null;
+    refreshTokenValue: string | null;
+    userDetails: UserDetails | null;
+    session: AuthSessionOptions | null;
 
     constructor(client: NodeHiveClient, storageAdapter?: StorageAdapter | null, authConfig?: AuthOptions);
 
     /**
-     * Login with username and password
-     * For OAuth or JWT authentication
+     * Login using the configured strategy
      */
-    login(username: string, password: string, options?: LoginOptions): Promise<LoginResult>;
+    login(username?: string, password?: string, options?: LoginOptions): Promise<LoginResult>;
 
     /**
-     * Authenticate using OAuth Client Credentials Grant
-     * For service account / server-to-server authentication
+     * Refresh the current access token (if supported by the strategy)
      */
-    authenticateClientCredentials(options?: LoginOptions): Promise<LoginResult>;
+    refreshToken(options?: LoginOptions): Promise<LoginResult>;
 
     /**
-     * Refresh OAuth access token
-     */
-    refreshToken(): Promise<LoginResult>;
-
-    /**
-     * Logout and clear stored credentials
+     * Clear all persisted authentication state
      */
     logout(): Promise<void>;
 
     /**
-     * Get current authentication token
+     * Persist an access token
+     */
+    setToken(token: string | null, options?: Record<string, any>): Promise<void>;
+
+    /**
+     * Read the current access token
      */
     getToken(): Promise<string | null>;
 
-    /**
-     * Get current user details
-     */
+    setTokenExpiresAt(timestamp: number | null): Promise<void>;
+
+    getTokenExpiresAt(): Promise<number | null>;
+
+    setRefreshToken(refreshToken: string | null, options?: Record<string, any>): Promise<void>;
+
+    getRefreshToken(): Promise<string | null>;
+
+    setUserDetails(userDetails: UserDetails | string | null, options?: Record<string, any>): Promise<void>;
+
     getUserDetails(): Promise<UserDetails | null>;
 
-    /**
-     * Check if user is logged in
-     */
     isLoggedIn(): Promise<boolean>;
 
-    /**
-     * Validate current session with server
-     */
+    isTokenExpired(): Promise<boolean>;
+
     hasValidSession(): Promise<boolean>;
 
-    /**
-     * Fetch user details from server (JWT)
-     */
     fetchUserDetails(token: string): Promise<any>;
 
-    /**
-     * Fetch user details from server (OAuth)
-     */
-    fetchUserDetailsOAuth(token: string): Promise<any>;
-
-    /**
-     * Decode JWT token
-     */
     decodeJwt(token: string): any;
 
-    /**
-     * Set authentication token directly
-     */
-    setToken(token: string): void;
+    isClientCredentialsGrant(): boolean;
+
+    resolveMaxAge(...candidates: Array<number | string | null | undefined>): number | null;
 }
 
 // ===== Configuration Types =====
@@ -239,9 +232,19 @@ export interface AuthOptions {
     token?: string;
 
     /**
+     * Session persistence settings (e.g. cookie max-age overrides)
+     */
+    session?: AuthSessionOptions;
+
+    /**
      * Storage adapter configuration for tokens
      */
     storage?: StorageOptions;
+}
+
+export interface AuthSessionOptions {
+    tokenMaxAge?: number;
+    refreshTokenMaxAge?: number;
 }
 
 /**
@@ -294,6 +297,16 @@ export interface LoginOptions {
      * OAuth scope override
      */
     scope?: string;
+
+    /**
+     * Override for token max-age persistence (seconds)
+     */
+    tokenMaxAge?: number;
+
+    /**
+     * Override for refresh token max-age persistence (seconds)
+     */
+    refreshTokenMaxAge?: number;
 }
 
 export interface StorageOptions {
