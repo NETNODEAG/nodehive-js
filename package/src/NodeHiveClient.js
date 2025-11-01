@@ -224,7 +224,6 @@ export class NodeHiveClient {
                 'Content-Type': 'application/vnd.api+json',
                 ...headers,
             },
-            next: { revalidate: 300 },
             redirect: 'follow',
         };
 
