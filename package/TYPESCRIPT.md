@@ -42,6 +42,10 @@ const oauthClientAuth: AuthOptions = {
         clientId: 'your-client-id',
         clientSecret: 'your-client-secret',
         scope: 'optional-scope'
+    },
+    session: {
+        tokenMaxAge: 3600,
+        refreshTokenMaxAge: 60 * 60 * 24 * 30
     }
 };
 
@@ -77,9 +81,12 @@ const loginOptions: LoginOptions = {
     grantType: 'client_credentials',
     clientId: 'override-client-id',
     clientSecret: 'override-client-secret',
-    scope: 'custom-scope'
+    scope: 'custom-scope',
+    tokenMaxAge: 900,
+    refreshTokenMaxAge: 3600
 };
 
+// Username/password are optional when using the client credentials grant
 await client.login(undefined, undefined, loginOptions);
 ```
 
@@ -121,6 +128,10 @@ const config: NodeHiveOptions = {
     auth: {
         method: 'nodehive-api-key',
         apiKey: 'nhk_your_key',
+        session: {
+            tokenMaxAge: 3600,
+            refreshTokenMaxAge: 60 * 60 * 24 * 30
+        },
         storage: {
             type: 'memory' // or 'localStorage', 'sessionStorage', 'cookie', 'custom'
         }

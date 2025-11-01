@@ -21,7 +21,20 @@ The nodehive-js SDK provides a suite of developer tools for easily fetching data
 - Load Paragraphs
 - Load Taxonomies and Terms
 - Routing & Slug resolution
-- Login/Logout a User (JWT handling)
+- Strategy-based authentication (API key, OAuth password/client credentials, JWT)
+
+## Authentication
+
+The client ships with a flexible authentication manager that supports multiple strategies out of the box. Configure the strategy when you initialise `NodeHiveClient`:
+
+Available strategies:
+
+- **API Key** (`method: 'nodehive-api-key'`): best for server-to-server usage, no expiry handling required.
+- **OAuth Password** (`grantType: 'password'`): authenticates end users with username/password credentials.
+- **OAuth Client Credentials** (`grantType: 'client_credentials'`): service accounts with automatic token refresh.
+- **JWT** (`method: 'jwt'`): legacy support for Drupal JWT endpoints.
+
+Tokens, refresh tokens, and user details are stored through pluggable storage adapters (`MemoryStorage`, `BrowserStorage`, `CookieStorage`, or a custom adapter). You can also control persistence behaviour via the `session` options or by calling the new helpers (`setToken`, `setTokenExpiresAt`, `setRefreshToken`, etc.) directly on `client.auth`.
 
 ## NextJS Starter for NodeHive Frontend
 To begin building a frontend for NodeHive, utilize our starter template available at: https://github.com/NETNODEAG/nodehive-nextjs-starter.

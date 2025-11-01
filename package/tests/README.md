@@ -65,13 +65,16 @@ Default test configuration:
 - Resource retrieval by slug
 - Validation errors
 
-### Authentication (14 tests)
+### Authentication (17 tests)
 - AuthManager initialization
 - Storage adapters (Memory, Browser, Cookie)
 - Token management
+- Token expiry tracking
+- Refresh token persistence helpers
 - Login state management
 - JWT handling
 - Session validation
+- API key strategy behaviour
 - Backwards compatibility
 
 ### Taxonomy (9 tests + 1 skipped)

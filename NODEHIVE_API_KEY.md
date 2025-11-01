@@ -63,6 +63,7 @@ const client = new NodeHiveClient({
 });
 
 // No login() needed - just start fetching!
+// (Calling await client.login() will return the same token if you prefer the explicit flow.)
 async function fetchContent() {
     // Fetch content types
     const contentTypes = await client.getContentTypes();

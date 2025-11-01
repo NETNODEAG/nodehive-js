@@ -120,10 +120,10 @@ Demonstrates OAuth Client Credentials Grant for server-to-server authentication:
 
 - **No username/password required** - perfect for service accounts
 - **Basic client credentials** setup
-- **Direct method calls** (authenticateClientCredentials())
 - **Making API requests** as a service account
 - **Scope-based authentication** (optional)
 - **Token caching strategies** for performance
+- **Expiry helpers** (`auth.getTokenExpiresAt()`, `auth.isTokenExpired()`)
 - **Best practices** for server-to-server auth
 - **Comparison** between Password Grant and Client Credentials
 
