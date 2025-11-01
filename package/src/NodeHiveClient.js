@@ -81,10 +81,11 @@ export class NodeHiveClient {
             request: [],
             response: []
         };
+
         if (options.interceptors) {
             options.interceptors.forEach(interceptor => {
-                if (interceptor.request) this.interceptors.request.push(interceptor.request);
-                if (interceptor.response) this.interceptors.response.push(interceptor.response);
+                if (interceptor.request) this.addRequestInterceptor(interceptor.request);
+                if (interceptor.response) this.addResponseInterceptor(interceptor.response);
             });
         }
 
