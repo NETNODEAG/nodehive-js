@@ -3,3 +3,4 @@ playground/.env
 examples/.env
 .DS_Store
 .claude
+.vscode
