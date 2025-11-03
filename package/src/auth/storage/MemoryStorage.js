@@ -7,7 +7,13 @@ export class MemoryStorage {
     return this.data.get(key) || null;
   }
 
-  async set(key, value) {
+  /**
+   * Sets a value in storage
+   * @param {string} key
+   * @param {string} value
+   * @param {object} [options] - Options such as { maxAge }, which are ignored.
+   */
+  async set(key, value, options) {
     this.data.set(key, value);
   }
 

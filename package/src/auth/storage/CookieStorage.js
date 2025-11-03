@@ -8,6 +8,12 @@ export class CookieStorage {
     return null;
   }
 
+  /**
+   * Sets a value in storage.
+   * @param {string} key
+   * @param {string} value
+   * @param {object} [options]
+   */
   async set(key, value, options = {}) {
     const {
       maxAge = 31536000,

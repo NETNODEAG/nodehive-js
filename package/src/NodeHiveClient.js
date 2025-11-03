@@ -238,7 +238,8 @@ export class NodeHiveClient {
         // Automatically authenticate client credentials if needed
         let token = await this.auth.getToken();
         if (this.auth.isClientCredentialsGrant()) {
-          if (!token || this.auth.isTokenExpired()) {
+          const isExpired = await this.auth.isTokenExpired();
+          if (!token || isExpired) {
             await this.auth.login();
             token = await this.auth.getToken();
           }

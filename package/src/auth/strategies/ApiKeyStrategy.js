@@ -3,25 +3,27 @@ import { AuthenticationError } from "../../errors.js";
 export class ApiKeyStrategy {
   constructor(authManager) {
     this.authManager = authManager;
-    this.apiKey = authManager.authConfig?.apiKey;
 
-    if (this.apiKey) {
-      authManager.setToken(this.apiKey).catch((error) => {
-        console.error("Failed to set API key token in storage", error);
-        throw error;
-      });
-    }
-  }
-
-  async login(username, password, options = {}) {
-    if (!this.apiKey) {
+    if (!this.authManager.apiKey) {
       throw new AuthenticationError("API key is required for API Key strategy");
     }
 
-    return {
-      success: true,
-      token: this.apiKey,
-    };
+    this.ready = this.login().catch((err) => {
+      this.ready = Promise.reject(err);
+      throw err;
+    });
+  }
+
+  async login(username, password, options = {}) {
+    try {
+      await this.authManager.setToken(this.authManager.apiKey);
+      return {
+        success: true,
+        token: this.authManager.apiKey,
+      };
+    } catch (error) {
+      throw new AuthenticationError("Failed to set API key token in storage");
+    }
   }
 
   async refreshToken(options = {}) {

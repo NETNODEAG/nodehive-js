@@ -18,7 +18,13 @@ export class BrowserStorage {
     return this.storage.getItem(key);
   }
 
-  async set(key, value) {
+  /**
+   * Sets a value in storage
+   * @param {string} key
+   * @param {string} value
+   * @param {object} [options] - Options such as { maxAge }, which are ignored.
+   */
+  async set(key, value, options) {
     this.storage.setItem(key, value);
   }
 
