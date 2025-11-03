@@ -7,6 +7,7 @@ import { ValidationError } from '../errors.js';
 
 /**
  * Get available menus (legacy method name)
+ * @deprecated Use getMenus() instead
  */
 export async function getAvailableMenus(client, options = {}) {
     return getMenus(client, options);
@@ -28,6 +29,7 @@ export async function getMenus(client, options = {}) {
 
 /**
  * Get menu items (legacy method name)
+ * @deprecated Use getMenuLinks() instead
  */
 export async function getMenuItems(client, menuId, options = {}) {
     return getMenuLinks(client, menuId, options);

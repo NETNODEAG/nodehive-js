@@ -430,9 +430,7 @@ export class NodeHiveClient {
     getResourceBySlug(slug: string, options?: RequestOptions): Promise<ApiResponse | null>;
 
     // ===== Menu Methods =====
-    getAvailableMenus(options?: RequestOptions): Promise<ApiResponse>;
     getMenus(options?: RequestOptions): Promise<ApiResponse>;
-    getMenuItems(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
     getMenuLinks(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
     getMenuTree(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
     getMenu(menuId: string, options?: RequestOptions): Promise<MenuApiResponse>;
@@ -501,7 +499,14 @@ export class NodeHiveClient {
      */
     getUserDetails(): Promise<UserDetails | null>;
 
-    // ===== Deprecated Methods (for backwards compatibility) =====
+  // ===== Deprecated Methods (for backwards compatibility) =====
+
+    /** @deprecated Use getMenus() instead */
+    getAvailableMenus(options?: RequestOptions): Promise<ApiResponse>;
+
+    /** @deprecated Use getMenuLinks() instead */
+    getMenuItems(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
+
     /** @deprecated Use getMediaList() instead */
     getMedias(mediaType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
 
