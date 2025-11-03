@@ -50,7 +50,7 @@ async function basicClientCredentials() {
     try {
         console.log('Authenticating with client credentials...');
 
-        // Option 1: Call login() without username/password
+        // Call login() without username/password
         // It will automatically use client credentials grant
         const result = await client.login();
 
@@ -59,6 +59,11 @@ async function basicClientCredentials() {
         console.log('  - Token type:', result.token_type);
         console.log('  - Expires in:', result.expires_in, 'seconds');
         console.log('  - Scope:', result.scope || 'default');
+
+        const expiresAt = await client.auth.getTokenExpiresAt();
+        if (expiresAt) {
+            console.log('  - Stored expiresAt:', new Date(expiresAt).toISOString());
+        }
 
         return result;
     } catch (error) {
@@ -73,37 +78,20 @@ async function basicClientCredentials() {
 }
 
 // ============================================================
-// Example 2: Direct Method Call
+// Example 2: Making API Requests
 // ============================================================
-console.log('\n--- Example 2: Direct Method Call ---\n');
-
-async function directClientCredentials() {
-    try {
-        console.log('Using authenticateClientCredentials() directly...');
-
-        // Option 2: Call authenticateClientCredentials() directly
-        const result = await client.authenticateClientCredentials();
-
-        console.log('✓ Authentication successful!');
-        console.log('  - Token obtained');
-
-        return result;
-    } catch (error) {
-        console.error('✗ Authentication failed:', error.message);
-        throw error;
-    }
-}
-
-// ============================================================
-// Example 3: Making API Requests
-// ============================================================
-console.log('\n--- Example 3: Making API Requests ---\n');
+console.log('\n--- Example 2: Making API Requests ---\n');
 
 async function makeApiRequests() {
     try {
         // Authenticate first
         await client.login();
         console.log('✓ Authenticated as service account\n');
+
+        if (await client.auth.isTokenExpired()) {
+            console.log('⚠ Token already expired, re-authenticating...');
+            await client.login();
+        }
 
         // Now make requests just like with user authentication
         console.log('Fetching content types...');
@@ -128,9 +116,9 @@ async function makeApiRequests() {
 }
 
 // ============================================================
-// Example 4: With Scopes (if configured in Drupal)
+// Example 3: With Scopes (if configured in Drupal)
 // ============================================================
-console.log('\n--- Example 4: Authentication with Scopes ---\n');
+console.log('\n--- Example 3: Authentication with Scopes ---\n');
 
 const clientWithScope = new NodeHiveClient({
     baseUrl: process.env.DRUPAL_BASE_URL || 'https://netnode.nodehive.app',
@@ -157,9 +145,9 @@ async function authWithScopes() {
 }
 
 // ============================================================
-// Example 5: Token Caching Strategy
+// Example 4: Token Caching Strategy
 // ============================================================
-console.log('\n--- Example 5: Token Caching Strategy ---\n');
+console.log('\n--- Example 4: Token Caching Strategy ---\n');
 
 let cachedClient = null;
 
@@ -209,9 +197,9 @@ async function demonstrateCaching() {
 }
 
 // ============================================================
-// Example 6: Comparison with Password Grant
+// Example 5: Comparison with Password Grant
 // ============================================================
-console.log('\n--- Example 6: Password vs Client Credentials ---\n');
+console.log('\n--- Example 5: Password vs Client Credentials ---\n');
 
 function showComparison() {
     console.log('Password Grant (User Authentication):');
@@ -237,9 +225,6 @@ async function main() {
         // Run basic example
         await basicClientCredentials();
 
-        // Run direct method example
-        await directClientCredentials();
-
         // Show comparison
         showComparison();
 
@@ -259,7 +244,7 @@ async function main() {
         console.log('✅ DO:');
         console.log('  - Use client credentials for server-to-server');
         console.log('  - Cache the authenticated client instance');
-        console.log('  - Re-authenticate when token expires');
+        console.log('  - Re-authenticate when token expires (check client.auth.isTokenExpired())');
         console.log('  - Store credentials in environment variables');
         console.log('  - Use HTTPS for production\n');
 

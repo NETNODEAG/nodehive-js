@@ -1,6 +1,8 @@
-import { DrupalJsonApiParams } from 'drupal-jsonapi-params';
 import { NetworkError, ValidationError, ConfigurationError } from './errors.js';
-import { AuthManager, MemoryStorage, BrowserStorage, CookieStorage } from './auth.js';
+import { AuthManager } from './auth/AuthManager.js';
+import { MemoryStorage } from './auth/storage/MemoryStorage.js';
+import { BrowserStorage } from './auth/storage/BrowserStorage.js';
+import { CookieStorage } from './auth/storage/CookieStorage.js';
 
 // Import method modules
 import * as contentMethods from './methods/content.js';
@@ -34,6 +36,9 @@ export class NodeHiveClient {
      * @param {string} options.auth.oauth.clientSecret - OAuth client secret
      * @param {string} options.auth.oauth.scope - OAuth scope (optional, for client_credentials)
      * @param {Object} options.auth.storage - Storage adapter for auth persistence
+     * @param {Object} options.auth.session - Session configuration
+     * @param {number} options.auth.session.tokenMaxAge - Max age for storing the auth token (in seconds)
+     * @param {number} options.auth.session.refreshTokenMaxAge - Max age for storing the refresh token (in seconds)
      * @param {number} options.timeout - Request timeout in milliseconds
      * @param {Object} options.cache - Cache configuration
      * @param {Object} options.retry - Retry configuration
@@ -76,10 +81,11 @@ export class NodeHiveClient {
             request: [],
             response: []
         };
+
         if (options.interceptors) {
             options.interceptors.forEach(interceptor => {
-                if (interceptor.request) this.interceptors.request.push(interceptor.request);
-                if (interceptor.response) this.interceptors.response.push(interceptor.response);
+                if (interceptor.request) this.addRequestInterceptor(interceptor.request);
+                if (interceptor.response) this.addResponseInterceptor(interceptor.response);
             });
         }
 
@@ -88,7 +94,11 @@ export class NodeHiveClient {
         const authConfig = {
             method: options.auth?.method,
             oauth: options.auth?.oauth,
-            apiKey: options.auth?.apiKey
+            apiKey: options.auth?.apiKey,
+            session: {
+              tokenMaxAge: options.auth?.session?.tokenMaxAge,
+              refreshTokenMaxAge: options.auth?.session?.refreshTokenMaxAge,
+            }
         };
         this.auth = new AuthManager(this, storageAdapter, authConfig);
 
@@ -105,7 +115,6 @@ export class NodeHiveClient {
         this.getToken = this.auth.getToken.bind(this.auth);
         this.getUserDetails = this.auth.getUserDetails.bind(this.auth);
         this.refreshToken = this.auth.refreshToken.bind(this.auth);
-        this.authenticateClientCredentials = this.auth.authenticateClientCredentials.bind(this.auth);
 
         // Bind all API methods
         this._bindMethods();
@@ -215,7 +224,6 @@ export class NodeHiveClient {
                 'Content-Type': 'application/vnd.api+json',
                 ...headers,
             },
-            next: { revalidate: 300 },
             redirect: 'follow',
         };
 
@@ -227,12 +235,19 @@ export class NodeHiveClient {
             requestConfig.timeoutId = timeoutId;
         }
 
+        // Automatically authenticate client credentials if needed
+        let token = await this.auth.getToken();
+        if (this.auth.isClientCredentialsGrant()) {
+          const isExpired = await this.auth.isTokenExpired();
+          if (!token || isExpired) {
+            await this.auth.login();
+            token = await this.auth.getToken();
+          }
+        }
+
         // Add authentication
-        const token = await this.auth.getToken();
         if (token) {
             requestConfig.headers['Authorization'] = `Bearer ${token}`;
-        } else if (this.auth.isClientCredentialsGrant()) {
-            await this.authenticateClientCredentials();
         }
 
         // Add body if needed
@@ -274,11 +289,8 @@ export class NodeHiveClient {
                 if (response.status === 401 && this.auth.authMethod === 'oauth' && retryCount === 0) {
                     try {
                         // Attempt to refresh the token
-                        if (this.auth.isClientCredentialsGrant()) {
-                            await this.authenticateClientCredentials();
-                        } else {
-                            await this.auth.refreshToken();
-                        }
+                        await this.auth.refreshToken();
+
                         // Retry the request with the new token
                         return this.request(endpoint, { ...options, retryCount: retryCount + 1 });
                     } catch (refreshError) {
@@ -406,8 +418,6 @@ export class NodeHiveClient {
         );
     }
 
-    // ===== Taxonomy Methods (implemented in methods/taxonomy.js) =====
-
     // ===== Backwards Compatibility Methods =====
 
     /**
@@ -425,15 +435,24 @@ export class NodeHiveClient {
     }
 
     // Legacy cookie methods for backwards compatibility
+    /**
+     * @deprecated Use auth methods instead
+     */
     storeUserDetails() {
         console.warn('Deprecated: User details are now handled automatically');
     }
 
+    /**
+     * @deprecated Use auth.logout() instead
+     */
     clearUserDetails() {
         console.warn('Deprecated: Use logout() instead');
         this.logout();
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     getCookie(name) {
         console.warn('Deprecated: Cookie access is now handled internally');
         if (typeof document === 'undefined') return null;
@@ -442,6 +461,9 @@ export class NodeHiveClient {
         return parts.length === 2 ? parts.pop().split(';').shift() : null;
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     getAllCookieData() {
         console.warn('Deprecated: Cookie access is now handled internally');
         if (typeof document === 'undefined') return {};
@@ -454,16 +476,25 @@ export class NodeHiveClient {
         return cookieData;
     }
 
+    /**
+     * @deprecated Implement role checking in your application
+     */
     hasRole() {
         console.warn('Deprecated: Implement role checking in your application');
         return false;
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     decodeJwt(token) {
         console.warn('Deprecated: JWT decoding is now handled internally');
         return this.auth.decodeJwt(token);
     }
 
+    /**
+     * @deprecated Use auth methods instead
+     */
     fetchUserDetails(token) {
         console.warn('Deprecated: User details fetching is now handled internally');
         return this.auth.fetchUserDetails(token);

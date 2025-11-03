@@ -66,8 +66,9 @@ export class TestHelper {
             return result;
         } catch (error) {
             this.failed++;
-            this.error(`${name}: ${error.message}`);
-            if (process.env.DEBUG) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.error(`${name}: ${message}`);
+            if (process.env.DEBUG && error instanceof Error) {
                 console.error(error.stack);
             }
             throw error;

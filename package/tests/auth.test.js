@@ -124,6 +124,40 @@ async function runTests() {
         }
     });
 
+    await helper.test('Token expiry handling', async () => {
+        const client = new NodeHiveClient({
+            baseUrl: helper.BACKEND_URL
+        });
+
+        await client.auth.setToken('expiring-token');
+
+        const future = Date.now() + 1_000;
+        await client.auth.setTokenExpiresAt(future);
+        helper.assert(!(await client.auth.isTokenExpired()), 'Token should not be expired yet');
+
+        const past = Date.now() - 1_000;
+        await client.auth.setTokenExpiresAt(past);
+        helper.assert(await client.auth.isTokenExpired(), 'Token should report as expired');
+
+        helper.debug('Token expiry tracking working');
+    });
+
+    await helper.test('Refresh token persistence', async () => {
+        const client = new NodeHiveClient({
+            baseUrl: helper.BACKEND_URL
+        });
+
+        await client.auth.setRefreshToken('refresh-token-test');
+        const stored = await client.auth.getRefreshToken();
+        helper.assert(stored === 'refresh-token-test', 'Refresh token should be stored');
+
+        await client.auth.setRefreshToken(null);
+        const cleared = await client.auth.getRefreshToken();
+        helper.assert(!cleared, 'Refresh token should be cleared');
+
+        helper.debug('Refresh token storage working');
+    });
+
     await helper.test('Dynamic token update', async () => {
         const client = new NodeHiveClient({
             baseUrl: helper.BACKEND_URL
@@ -134,7 +168,7 @@ async function runTests() {
         helper.assert(!token, 'Should have no token initially');
 
         // Set token
-        client.auth.setToken('dynamic-token');
+        await client.auth.setToken('dynamic-token');
         token = await client.getToken();
         helper.assert(token === 'dynamic-token', 'Should have new token');
 
@@ -153,7 +187,7 @@ async function runTests() {
         helper.assert(!loggedIn, 'Should not be logged in initially');
 
         // Set token
-        client.auth.setToken('test-token');
+        await client.auth.setToken('test-token');
         loggedIn = await client.isLoggedIn();
         helper.assert(loggedIn, 'Should be logged in after setting token');
 
@@ -163,6 +197,22 @@ async function runTests() {
         helper.assert(!loggedIn, 'Should not be logged in after logout');
 
         helper.debug('Login state management working');
+    });
+
+    await helper.test('API Key login returns credentials', async () => {
+        const apiKey = 'nhk_test_key';
+        const client = new NodeHiveClient({
+            baseUrl: helper.BACKEND_URL,
+            auth: {
+                method: 'nodehive-api-key',
+                apiKey
+            }
+        });
+
+        const result = await client.login();
+        helper.assert(result.success, 'API key login should succeed');
+        helper.assert(result.token === apiKey, 'API key login should return configured token');
+        helper.debug('API key strategy login working');
     });
 
     await helper.test('logout() clears credentials', async () => {

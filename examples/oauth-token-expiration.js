@@ -89,6 +89,11 @@ async function manualTokenRefresh() {
         console.log('  - New token expires in:', refreshResult.expires_in, 'seconds');
         console.log('  - Token changed:', oldToken !== newToken ? 'Yes' : 'No');
 
+        const expiresAt = await client.auth.getTokenExpiresAt();
+        if (expiresAt) {
+            console.log('  - Stored expiresAt:', new Date(expiresAt).toISOString());
+        }
+
         // Make a request with refreshed token
         console.log('\n3. Making request with refreshed token...');
         const nodes = await client.getNodes('article', {
@@ -128,6 +133,7 @@ async function automaticTokenRefresh() {
         console.log('   2. Automatically call refreshToken()');
         console.log('   3. Retry the request with the new token');
         console.log('   4. Return the result (transparent to your code!)');
+        console.log('   (You can also poll client.auth.isTokenExpired() before making requests.)');
 
     } catch (error) {
         console.error('✗ Error:', error.message);

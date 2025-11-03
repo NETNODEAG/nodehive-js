@@ -76,9 +76,6 @@ const client = new NodeHiveClient({
 // No username/password needed!
 await client.login(); // Uses client credentials automatically
 
-// Or call directly
-await client.authenticateClientCredentials();
-
 // Now make requests as a service account
 const articles = await client.getNodes('article');
 ```
@@ -92,7 +89,7 @@ const articles = await client.getNodes('article');
 
 **Key differences from Password Grant:**
 - ❌ No username/password required
-- ❌ No refresh token (re-authenticate when expired)
+- ❌ No refresh token (re-authenticate or call `login()` again when expired)
 - ✅ Faster authentication (fewer parameters)
 - ✅ Better for automated systems
 - ✅ Acts as service account, not specific user
@@ -146,6 +143,26 @@ const result = await client.login('username', 'password', {
 
 OAuth tokens typically expire after a certain time (usually 5 minutes / 300 seconds). The NodeHive Client **automatically handles token expiration** for you!
 
+You can also provide persistence hints for cookie-based adapters:
+
+```javascript
+const client = new NodeHiveClient({
+    baseUrl: process.env.DRUPAL_BASE_URL,
+    auth: {
+        method: 'oauth',
+        oauth: {
+            grantType: 'password',
+            clientId: process.env.OAUTH_CLIENT_ID,
+            clientSecret: process.env.OAUTH_CLIENT_SECRET
+        },
+        session: {
+            tokenMaxAge: 3600,          // access token lifetime in seconds
+            refreshTokenMaxAge: 60 * 60 * 24 * 30 // refresh token lifetime in seconds
+        }
+    }
+});
+```
+
 #### Automatic Token Refresh
 
 When a request fails with a 401 Unauthorized error, the client will:
@@ -178,7 +195,16 @@ try {
     console.log('New Refresh Token:', result.refresh_token);
     console.log('Expires in:', result.expires_in);
 } catch (error) {
-    console.error('Token refresh failed:', error.message);
+console.error('Token refresh failed:', error.message);
+}
+```
+
+```javascript
+const expiresAt = await client.auth.getTokenExpiresAt();
+console.log('Token expires at:', expiresAt);
+
+if (await client.auth.isTokenExpired()) {
+    await client.login(); // or await client.refreshToken();
 }
 ```
 
