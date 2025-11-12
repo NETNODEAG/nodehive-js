@@ -66,11 +66,16 @@ export class OAuthPasswordStrategy {
         );
       }
 
-      const userDetails = await this.fetchUserDetails(data.access_token);
-      await this.authManager.setUserDetails(userDetails, tokenOptions);
-
       const expiresAt = maxAge ? Date.now() + maxAge * 1000 : null;
       await this.authManager.setTokenExpiresAt(expiresAt, tokenOptions);
+
+      let userDetails = null;
+      try {
+        userDetails = await this.fetchUserDetails(data.access_token);
+        await this.authManager.setUserDetails(userDetails, tokenOptions);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
 
       return {
         success: true,
@@ -137,11 +142,16 @@ export class OAuthPasswordStrategy {
         );
       }
 
-      const userDetails = await this.fetchUserDetails(data.access_token);
-      await this.authManager.setUserDetails(userDetails, tokenOptions);
-
       const expiresAt = maxAge ? Date.now() + maxAge * 1000 : null;
       await this.authManager.setTokenExpiresAt(expiresAt, tokenOptions);
+
+      let userDetails = null;
+      try {
+        userDetails = await this.fetchUserDetails(data.access_token);
+        await this.authManager.setUserDetails(userDetails, tokenOptions);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
 
       return {
         success: true,
