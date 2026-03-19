@@ -91,9 +91,9 @@ export class AuthManager {
         typeof userDetails === "string"
           ? userDetails
           : JSON.stringify(userDetails);
-      await this.storage.set("userDetails", userDetailsString, options);
+      await this.storage.set("user_details", userDetailsString, options);
     } else {
-      await this.storage.remove("userDetails");
+      await this.storage.remove("user_details");
     }
   }
 
@@ -101,7 +101,7 @@ export class AuthManager {
     if (this.userDetails) {
       return this.userDetails;
     }
-    const stored = await this.storage.get("userDetails");
+    const stored = await this.storage.get("user_details");
     if (stored) {
       try {
         this.userDetails = JSON.parse(stored);
