@@ -171,6 +171,8 @@ export interface NodeHiveOptions {
     config?: NodeHiveConfig;
     debug?: boolean;
     defaultLanguage?: string;
+    /** Whether the Drupal backend uses language prefixes in API URLs (default: true) */
+    multilingual?: boolean;
     auth?: AuthOptions;
     timeout?: number;
     cache?: CacheOptions;
@@ -404,6 +406,7 @@ export class NodeHiveClient {
     config: NodeHiveConfig;
     debug: boolean;
     defaultLanguage: string | null;
+    multilingual: boolean;
     timeout: number;
     cache: CacheOptions | null;
     retry: RetryOptions;
@@ -449,7 +452,11 @@ export class NodeHiveClient {
 
     // ===== Fragment Methods =====
     getFragment(uuid: string, fragmentType: string, options?: RequestOptions): Promise<ApiResponse>;
+    getFragments(fragmentType: string, options?: RequestOptions): Promise<ApiResponse>;
+
+    // ===== Area Methods =====
     getArea(uuid: string, options?: RequestOptions): Promise<ApiResponse>;
+    getAreas(options?: RequestOptions): Promise<ApiResponse>;
 
     // ===== Paragraph Methods =====
     getParagraph(uuid: string, paragraphType: string, options?: RequestOptions): Promise<ApiResponse>;

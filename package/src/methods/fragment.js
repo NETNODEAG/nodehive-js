@@ -6,7 +6,7 @@ import { ValidationError } from '../errors.js';
  */
 
 /**
- * Get fragment
+ * Get single fragment
  */
 export async function getFragment(client, uuid, fragmentType, options = {}) {
     if (!uuid || !fragmentType) {
@@ -24,15 +24,19 @@ export async function getFragment(client, uuid, fragmentType, options = {}) {
 }
 
 /**
- * Get area with fragments
+ * Get fragments (list)
  */
-export async function getArea(client, uuid, options = {}) {
-    if (!uuid) {
-        throw new ValidationError('UUID is required', 'uuid', uuid);
+export async function getFragments(client, fragmentType, options = {}) {
+    if (!fragmentType) {
+        throw new ValidationError('Fragment type is required', 'fragmentType', fragmentType);
     }
 
-    const { lang, ...requestOptions } = options;
-    const endpoint = `/jsonapi/nodehive_area/nodehive_area/${uuid}?jsonapi_include=1&include=fragment_id`;
+    const { lang, params = new DrupalJsonApiParams(), ...requestOptions } = options;
+    const entityType = `nodehive_fragment--${fragmentType}`;
+
+    client._applyConfigToParams(params, entityType);
+    const queryString = client._buildQueryString(params);
+    const endpoint = `/jsonapi/nodehive_fragment/${fragmentType}${queryString ? '?' + queryString : ''}${queryString ? '&' : '?'}jsonapi_include=1`;
 
     return client.request(endpoint, { lang, ...requestOptions });
 }

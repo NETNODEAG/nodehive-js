@@ -11,6 +11,7 @@ import * as taxonomyMethods from './methods/taxonomy.js';
 import * as mediaMethods from './methods/media.js';
 import * as textMethods from './methods/text.js';
 import * as fragmentMethods from './methods/fragment.js';
+import * as areaMethods from './methods/area.js';
 import * as paragraphMethods from './methods/paragraph.js';
 import * as routerMethods from './methods/router.js';
 import * as batchMethods from './methods/batch.js';
@@ -26,6 +27,7 @@ export class NodeHiveClient {
      * @param {Object} options.config - NodeHive configuration
      * @param {boolean} options.debug - Enable debug logging
      * @param {string} options.defaultLanguage - Default language for requests
+     * @param {boolean} options.multilingual - Whether the Drupal backend uses language prefixes (default: true)
      * @param {Object} options.auth - Authentication configuration
      * @param {string} options.auth.method - Authentication method: 'oauth' (default), 'jwt', or 'nodehive-api-key'
      * @param {string} options.auth.apiKey - NodeHive API Key (simplest method for server-to-server)
@@ -67,6 +69,7 @@ export class NodeHiveClient {
         this.config = options.config || {};
         this.debug = options.debug || false;
         this.defaultLanguage = options.defaultLanguage || null;
+        this.multilingual = options.multilingual ?? true;
         this.timeout = options.timeout || 30000;
         this.cache = options.cache || null;
         this.retry = {
@@ -155,7 +158,11 @@ export class NodeHiveClient {
 
         // Fragment methods
         this.getFragment = (...args) => fragmentMethods.getFragment(this, ...args);
-        this.getArea = (...args) => fragmentMethods.getArea(this, ...args);
+        this.getFragments = (...args) => fragmentMethods.getFragments(this, ...args);
+
+        // Area methods
+        this.getArea = (...args) => areaMethods.getArea(this, ...args);
+        this.getAreas = (...args) => areaMethods.getAreas(this, ...args);
 
         // Paragraph methods
         this.getParagraph = (...args) => paragraphMethods.getParagraph(this, ...args);
@@ -213,7 +220,7 @@ export class NodeHiveClient {
         } = options;
 
         // Build URL
-        const langPrefix = lang || this.defaultLanguage;
+        const langPrefix = this.multilingual ? (lang || this.defaultLanguage) : null;
         const path = langPrefix ? `/${langPrefix}${endpoint}` : endpoint;
         const url = `${this.baseUrl}${path}`;
 
