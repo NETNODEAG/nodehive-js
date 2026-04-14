@@ -22,7 +22,9 @@ export class JwtStrategy {
       });
 
       if (!response.ok) {
-        throw new AuthenticationError("Invalid username or password");
+        throw new AuthenticationError("Invalid username or password", {
+          status: response.status,
+        });
       }
 
       const data = await response.json();
@@ -51,6 +53,9 @@ export class JwtStrategy {
         user: userDetails,
       };
     } catch (error) {
+      if (error instanceof AuthenticationError) {
+        throw error;
+      }
       throw new AuthenticationError(`Login failed: ${error.message}`);
     }
   }
@@ -81,11 +86,16 @@ export class JwtStrategy {
       );
 
       if (!response.ok) {
-        throw new AuthenticationError("JWT user info fetch failed");
+        throw new AuthenticationError("JWT user info fetch failed", {
+          status: response.status,
+        });
       }
 
       return await response.json();
     } catch (error) {
+      if (error instanceof AuthenticationError) {
+        throw error;
+      }
       throw new AuthenticationError(
         `Failed to fetch user details: ${error.message}`
       );

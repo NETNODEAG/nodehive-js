@@ -38,7 +38,8 @@ export class OAuthClientCredentialsStrategy {
         const errorData = await response.json().catch(() => ({}));
         throw new AuthenticationError(
           errorData.error_description ||
-            "Client credentials authentication failed"
+            "Client credentials authentication failed",
+          { status: response.status }
         );
       }
 

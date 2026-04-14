@@ -39,7 +39,8 @@ export class OAuthPasswordStrategy {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new AuthenticationError(
-          errorData.error_description || "Invalid username or password"
+          errorData.error_description || "Invalid username or password",
+          { status: response.status }
         );
       }
 
@@ -116,7 +117,11 @@ export class OAuthPasswordStrategy {
       });
 
       if (!response.ok) {
-        throw new AuthenticationError("Failed to refresh token");
+        const errorData = await response.json().catch(() => ({}));
+        throw new AuthenticationError(
+          errorData.error_description || "Failed to refresh token",
+          { status: response.status }
+        );
       }
 
       const data = await response.json();
@@ -162,6 +167,9 @@ export class OAuthPasswordStrategy {
         user: userDetails,
       };
     } catch (error) {
+      if (error instanceof AuthenticationError) {
+        throw error;
+      }
       throw new AuthenticationError(`Token refresh failed: ${error.message}`);
     }
   }
@@ -186,11 +194,16 @@ export class OAuthPasswordStrategy {
       );
 
       if (!response.ok) {
-        throw new AuthenticationError("OAuth user info fetch failed");
+        throw new AuthenticationError("OAuth user info fetch failed", {
+          status: response.status,
+        });
       }
 
       return await response.json();
     } catch (error) {
+      if (error instanceof AuthenticationError) {
+        throw error;
+      }
       throw new AuthenticationError(
         `Failed to fetch user details: ${error.message}`
       );
