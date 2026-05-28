@@ -6,10 +6,11 @@ NodeHive Client now supports OAuth 2.0 authentication alongside the existing JWT
 
 ### OAuth Grant Types
 
-The library supports two OAuth 2.0 grant types:
+The library supports three OAuth 2.0 grant types:
 
-1. **Password Grant** - For user authentication (default)
+1. **Password Grant** - For user authentication (default, deprecated by OAuth 2.1)
 2. **Client Credentials Grant** - For server-to-server / service account authentication
+3. **Authorization Code Grant with PKCE** - For SSO via an Identity Provider redirect (recommended for user authentication, OAuth 2.1 compliant)
 
 ### OAuth Password Grant (User Authentication)
 
@@ -93,6 +94,88 @@ const articles = await client.getNodes('article');
 - ✅ Faster authentication (fewer parameters)
 - ✅ Better for automated systems
 - ✅ Acts as service account, not specific user
+
+### OAuth Authorization Code Grant with PKCE (SSO)
+
+Use this grant for delegating user login to a central Identity Provider (Drupal acting as IdP). The user is redirected to the IdP's `/oauth/authorize` endpoint, signs in there once, and is redirected back to your application with an authorization code. Your application exchanges the code (plus a PKCE `code_verifier`) for an access token + refresh token. Subsequent visits to other frontends sharing the same IdP get silent SSO via the IdP's session cookie — no second password prompt.
+
+The client only ever sees the IdP's redirect URL; credentials never touch the frontend. This is the recommended flow per OAuth 2.1.
+
+**Setup the SDK with `grantType: 'authorization_code'`:**
+
+```javascript
+import {
+    NodeHiveClient,
+    generatePKCE,
+    generateState,
+    buildAuthorizeUrl
+} from 'nodehive-js';
+
+const client = new NodeHiveClient({
+    baseUrl: process.env.DRUPAL_BASE_URL, // resource server (REST calls)
+    auth: {
+        method: 'oauth',
+        oauth: {
+            grantType: 'authorization_code',
+            clientId: process.env.OAUTH_CLIENT_ID,
+            clientSecret: process.env.OAUTH_CLIENT_SECRET,
+            scope: 'frontend',
+            authorizeUrl: process.env.OAUTH_AUTHORIZE_URL, // e.g. https://idp/oauth/authorize
+            tokenUrl: process.env.OAUTH_TOKEN_URL          // optional, defaults to {baseUrl}/oauth/token
+        }
+    }
+});
+```
+
+**Login route — start the redirect:**
+
+```javascript
+// e.g. Next.js Route Handler at /api/auth/login
+const { codeVerifier, codeChallenge } = await generatePKCE();
+const state = generateState();
+
+// Persist codeVerifier + state in an httpOnly cookie (short TTL, e.g. 10 min).
+// The same value is required in the callback handler.
+
+const redirectUrl = buildAuthorizeUrl({
+    authorizeUrl: process.env.OAUTH_AUTHORIZE_URL,
+    clientId: process.env.OAUTH_CLIENT_ID,
+    redirectUri: `${origin}/api/auth/callback`,
+    scope: 'frontend',
+    state,
+    codeChallenge
+});
+// 302 redirect the user to redirectUrl
+```
+
+**Callback route — exchange the code for tokens:**
+
+```javascript
+// e.g. Next.js Route Handler at /api/auth/callback
+// Verify `state` matches the value stored in the cookie, then:
+
+const result = await client.auth.exchangeCode({
+    code: searchParams.get('code'),
+    codeVerifier: cookieCodeVerifier,
+    redirectUri: `${origin}/api/auth/callback`
+});
+
+// result.token, result.refresh_token, result.user are now persisted via the
+// configured storage adapter. The user's roles are available at
+// result.user.roles (same format as Password Grant).
+```
+
+**Refresh tokens (silent refresh):**
+
+```javascript
+// Trigger from middleware when access token nears expiry
+const refreshed = await client.auth.refreshToken();
+// refreshed.token and refreshed.refresh_token are rotated; user_details updated.
+```
+
+**Multi-domain deployments:** The `redirectUri` is supplied per call instead of statically configured, so the same deployment can serve multiple eTLD+1 hostnames. Register every callback URL in the OAuth client on the IdP.
+
+**Logout:** Call `client.logout()` to clear local credentials. For full revocation, POST the refresh token to the IdP's `/oauth/revoke` endpoint from your server.
 
 ### JWT Authentication (Legacy)
 

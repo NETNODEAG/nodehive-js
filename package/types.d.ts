@@ -119,6 +119,11 @@ export class AuthManager {
     login(username?: string, password?: string, options?: LoginOptions): Promise<LoginResult>;
 
     /**
+     * Exchange an OAuth authorization code for tokens (Authorization Code + PKCE flow)
+     */
+    exchangeCode(options: ExchangeCodeOptions): Promise<LoginResult>;
+
+    /**
      * Refresh the current access token (if supported by the strategy)
      */
     refreshToken(options?: LoginOptions): Promise<LoginResult>;
@@ -161,6 +166,8 @@ export class AuthManager {
     decodeJwt(token: string): any;
 
     isClientCredentialsGrant(): boolean;
+
+    isAuthorizationCodeGrant(): boolean;
 
     resolveMaxAge(...candidates: Array<number | string | null | undefined>): number | null;
 }
@@ -257,8 +264,9 @@ export interface OAuthConfig {
      * OAuth grant type
      * - 'password': User authentication with username/password
      * - 'client_credentials': Service account / server-to-server
+     * - 'authorization_code': Authorization Code Flow with PKCE (SSO via IdP redirect)
      */
-    grantType?: 'password' | 'client_credentials';
+    grantType?: 'password' | 'client_credentials' | 'authorization_code';
 
     /**
      * OAuth client ID
@@ -274,6 +282,23 @@ export interface OAuthConfig {
      * OAuth scope (optional)
      */
     scope?: string;
+
+    /**
+     * Authorize endpoint URL (Authorization Code flow only).
+     * Example: https://idp.example.com/oauth/authorize
+     */
+    authorizeUrl?: string;
+
+    /**
+     * Token endpoint URL. Defaults to `{baseUrl}/oauth/token` when omitted.
+     */
+    tokenUrl?: string;
+
+    /**
+     * Default redirect URI for Authorization Code flow. Can be overridden per call
+     * (e.g. for multi-domain deployments where the redirect_uri is derived per request).
+     */
+    redirectUri?: string;
 }
 
 /**
@@ -283,7 +308,7 @@ export interface LoginOptions {
     /**
      * OAuth grant type override
      */
-    grantType?: 'password' | 'client_credentials';
+    grantType?: 'password' | 'client_credentials' | 'authorization_code';
 
     /**
      * OAuth client ID override
@@ -309,6 +334,68 @@ export interface LoginOptions {
      * Override for refresh token max-age persistence (seconds)
      */
     refreshTokenMaxAge?: number;
+}
+
+/**
+ * Options for AuthManager.exchangeCode (Authorization Code + PKCE flow)
+ */
+export interface ExchangeCodeOptions extends LoginOptions {
+    /** Authorization code from the OAuth callback */
+    code: string;
+    /** PKCE code_verifier matching the code_challenge sent to /oauth/authorize */
+    codeVerifier: string;
+    /** Redirect URI used for the original /oauth/authorize request (must match exactly) */
+    redirectUri: string;
+}
+
+/**
+ * PKCE primitives for the OAuth 2.0 Authorization Code + PKCE flow.
+ */
+export interface PKCEPair {
+    codeVerifier: string;
+    codeChallenge: string;
+    codeChallengeMethod: 'S256';
+}
+
+/**
+ * Generate a PKCE code_verifier/code_challenge pair using crypto.subtle.
+ * Works in both Node (>= 16) and modern browsers.
+ */
+export function generatePKCE(): Promise<PKCEPair>;
+
+/**
+ * Generate a random `state` parameter for the OAuth Authorization Request.
+ * Returns 32 random bytes encoded as base64url.
+ */
+export function generateState(): string;
+
+/**
+ * Options for buildAuthorizeUrl.
+ */
+export interface BuildAuthorizeUrlOptions {
+    authorizeUrl: string;
+    clientId: string;
+    redirectUri: string;
+    state: string;
+    codeChallenge: string;
+    scope?: string;
+    codeChallengeMethod?: 'S256';
+}
+
+/**
+ * Build the /oauth/authorize URL for an OAuth Authorization Code + PKCE redirect.
+ */
+export function buildAuthorizeUrl(options: BuildAuthorizeUrlOptions): string;
+
+/**
+ * OAuth 2.0 Authorization Code + PKCE strategy.
+ * Use via AuthManager when oauthConfig.grantType === 'authorization_code'.
+ */
+export class OAuthAuthorizationCodeStrategy {
+    constructor(authManager: AuthManager);
+    exchangeCode(options: ExchangeCodeOptions): Promise<LoginResult>;
+    refreshToken(options?: LoginOptions): Promise<LoginResult>;
+    fetchUserDetails(token: string): Promise<any>;
 }
 
 export interface StorageOptions {
@@ -560,6 +647,13 @@ declare module 'nodehive-js' {
         AuthOptions,
         OAuthConfig,
         LoginOptions,
+        ExchangeCodeOptions,
+        OAuthAuthorizationCodeStrategy,
+        PKCEPair,
+        BuildAuthorizeUrlOptions,
+        generatePKCE,
+        generateState,
+        buildAuthorizeUrl,
         StorageAdapter,
         MemoryStorage,
         BrowserStorage,
