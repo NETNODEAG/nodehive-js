@@ -2,6 +2,7 @@ import { ConfigurationError, AuthenticationError } from "../errors.js";
 import { MemoryStorage } from "./storage/MemoryStorage.js";
 import { ApiKeyStrategy } from "./strategies/ApiKeyStrategy.js";
 import { JwtStrategy } from "./strategies/JwtStrategy.js";
+import { OAuthAuthorizationCodeStrategy } from "./strategies/OAuthAuthorizationCodeStrategy.js";
 import { OAuthClientCredentialsStrategy } from "./strategies/OAuthClientCredentialsStrategy.js";
 import { OAuthPasswordStrategy } from "./strategies/OAuthPasswordStrategy.js";
 
@@ -116,6 +117,15 @@ export class AuthManager {
     return this.strategy.login(username, password, options);
   }
 
+  async exchangeCode(options = {}) {
+    if (typeof this.strategy.exchangeCode !== "function") {
+      throw new AuthenticationError(
+        "Current auth strategy does not support exchangeCode"
+      );
+    }
+    return this.strategy.exchangeCode(options);
+  }
+
   async refreshToken(options = {}) {
     return this.strategy.refreshToken(options);
   }
@@ -195,6 +205,13 @@ export class AuthManager {
     );
   }
 
+  isAuthorizationCodeGrant() {
+    return (
+      this.authMethod === "oauth" &&
+      this.oauthConfig.grantType === "authorization_code"
+    );
+  }
+
   resolveMaxAge(...candidates) {
     for (const ttl of candidates) {
       const numeric = Number(ttl);
@@ -210,9 +227,13 @@ export class AuthManager {
       case "jwt":
         return new JwtStrategy(this);
       case "oauth":
-        return this.isClientCredentialsGrant()
-          ? new OAuthClientCredentialsStrategy(this)
-          : new OAuthPasswordStrategy(this);
+        if (this.isClientCredentialsGrant()) {
+          return new OAuthClientCredentialsStrategy(this);
+        }
+        if (this.isAuthorizationCodeGrant()) {
+          return new OAuthAuthorizationCodeStrategy(this);
+        }
+        return new OAuthPasswordStrategy(this);
       default:
         throw new ConfigurationError(
           `Authentication method '${authMethod}' is not supported.`
