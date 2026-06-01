@@ -13,6 +13,11 @@ export class NetworkError extends NodeHiveError {
     url: string;
 }
 
+export class ApiError extends NodeHiveError {
+    error: any;
+    response: any;
+}
+
 export class AuthenticationError extends NodeHiveError {}
 export class ValidationError extends NodeHiveError {
     field?: string;
@@ -459,21 +464,85 @@ export interface ApiResponse<T = any> {
     }>;
 }
 
-/**
- * Menu API v1 response structure
- * Simplified menu structure from NodeHive API
- */
-export interface MenuApiResponse {
+export interface PublicApiEnvelope<T = any> {
+    status: 'ok' | 'error';
+    data?: T;
+    error?: any;
+}
+
+export interface PublicApiEndpointMetadata {
+    method?: string;
+    path?: string;
+    description?: string;
+    parameters?: Record<string, any>;
+    [key: string]: any;
+}
+
+export interface PublicApiContentType {
+    id?: string;
+    label?: string;
+    type?: string;
+    fields?: Record<string, any>;
+    [key: string]: any;
+}
+
+export interface PublicApiTag {
+    id?: string | number;
+    name?: string;
+    slug?: string;
+    [key: string]: any;
+}
+
+export interface PublicApiIndex {
+    endpoints?: Record<string, PublicApiEndpointMetadata> | PublicApiEndpointMetadata[];
+    content_types?: PublicApiContentType[];
+    tags?: PublicApiTag[];
+    [key: string]: any;
+}
+
+export interface PublicApiMenuItem {
+    title: string;
+    url: string;
+    description?: string | null;
+    enabled: boolean;
+    expanded: boolean;
+    weight: string | number;
+    children?: PublicApiMenuItem[];
+    [key: string]: any;
+}
+
+export interface PublicApiMenu {
     menu_id: string;
     language: string;
-    data: Array<{
-        title: string;
-        url: string;
-        description: string | null;
-        enabled: boolean;
-        expanded: boolean;
-        weight: string;
-    }>;
+    items: PublicApiMenuItem[];
+    data?: PublicApiMenuItem[];
+    [key: string]: any;
+}
+
+export interface JsonApiMenuItem {
+    id: string;
+    title: string;
+    url: string;
+    parent: string;
+    weight?: number;
+    enabled?: boolean;
+    expanded?: boolean;
+    [key: string]: any;
+}
+
+export interface PublicApiSpace {
+    id?: string | number;
+    uuid?: string;
+    title?: string;
+    name?: string;
+    frontpage_node?: {
+        id?: string | number;
+        uuid?: string;
+        [key: string]: any;
+    } | null;
+    content_types?: PublicApiContentType[];
+    tags?: PublicApiTag[];
+    [key: string]: any;
 }
 
 export interface RedirectData {
@@ -507,7 +576,7 @@ export class NodeHiveClient {
     constructor(options: NodeHiveOptions | string, legacyConfig?: NodeHiveConfig, legacyOptions?: any);
 
     // Core request method
-    request(endpoint: string, options?: RequestOptions): Promise<any>;
+    request<T = any>(endpoint: string, options?: RequestOptions): Promise<T>;
 
     // Interceptor management
     addRequestInterceptor(interceptor: RequestInterceptor): () => void;
@@ -521,9 +590,17 @@ export class NodeHiveClient {
 
     // ===== Menu Methods =====
     getMenus(options?: RequestOptions): Promise<ApiResponse>;
+    getMenuItems(menuId: string, options?: RequestOptions): Promise<ApiResponse<JsonApiMenuItem[]>>;
+    getMenuLinkEntities(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
+    /** @deprecated Use getMenuItems() for renderable menu items or getMenuLinkEntities() for raw Drupal entities. */
     getMenuLinks(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
+    /** @deprecated Use getMenuItems() instead. This returns a flat list, not a nested tree. */
     getMenuTree(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
-    getMenu(menuId: string, options?: RequestOptions): Promise<MenuApiResponse>;
+    getMenu(menuId: string, options?: RequestOptions): Promise<PublicApiMenu>;
+
+    // ===== NodeHive Public API Methods =====
+    getApiIndex(options?: RequestOptions): Promise<PublicApiIndex>;
+    getSpace(spaceRef: string, options?: RequestOptions): Promise<PublicApiSpace>;
 
     // ===== Taxonomy Methods =====
     getTaxonomyTerms(vocabularyId: string, options?: RequestOptions): Promise<ApiResponse>;
@@ -598,9 +675,6 @@ export class NodeHiveClient {
     /** @deprecated Use getMenus() instead */
     getAvailableMenus(options?: RequestOptions): Promise<ApiResponse>;
 
-    /** @deprecated Use getMenuLinks() instead */
-    getMenuItems(menuId: string, options?: RequestOptions): Promise<ApiResponse>;
-
     /** @deprecated Use getMediaList() instead */
     getMedias(mediaType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
 
@@ -640,6 +714,7 @@ declare module 'nodehive-js' {
         NodeHiveConfig,
         NodeHiveError,
         NetworkError,
+        ApiError,
         AuthenticationError,
         ValidationError,
         ConfigurationError,
@@ -661,7 +736,15 @@ declare module 'nodehive-js' {
         CookieOptions,
         StorageOptions,
         ApiResponse,
-        MenuApiResponse,
+        PublicApiEnvelope,
+        PublicApiEndpointMetadata,
+        PublicApiContentType,
+        PublicApiTag,
+        PublicApiMenuItem,
+        PublicApiMenu,
+        JsonApiMenuItem,
+        PublicApiIndex,
+        PublicApiSpace,
         RedirectData,
         RequestOptions,
         LoginResult,

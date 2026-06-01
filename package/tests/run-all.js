@@ -25,6 +25,7 @@ const testSuites = [
     { name: 'Taxonomy', file: './taxonomy.test.js' },
     { name: 'Media', file: './media.test.js' },
     { name: 'Texts', file: './texts.test.js' },
+    { name: 'Public API', file: './public-api.test.js' },
     { name: 'Error Handling', file: './error-handling.test.js' }
 ];
 

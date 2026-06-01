@@ -15,6 +15,7 @@ import * as areaMethods from './methods/area.js';
 import * as paragraphMethods from './methods/paragraph.js';
 import * as routerMethods from './methods/router.js';
 import * as batchMethods from './methods/batch.js';
+import * as publicApiMethods from './methods/public-api.js';
 
 /**
  * NodeHive client for interacting with NodeHive/Drupal JSON:API
@@ -137,6 +138,7 @@ export class NodeHiveClient {
         this.getAvailableMenus = (...args) => menuMethods.getAvailableMenus(this, ...args);
         this.getMenus = (...args) => menuMethods.getMenus(this, ...args);
         this.getMenuItems = (...args) => menuMethods.getMenuItems(this, ...args);
+        this.getMenuLinkEntities = (...args) => menuMethods.getMenuLinkEntities(this, ...args);
         this.getMenuLinks = (...args) => menuMethods.getMenuLinks(this, ...args);
         this.getMenuTree = (...args) => menuMethods.getMenuTree(this, ...args);
         this.getMenu = (...args) => menuMethods.getMenu(this, ...args);
@@ -179,6 +181,10 @@ export class NodeHiveClient {
         // Batch methods
         this.batch = (...args) => batchMethods.batch(this, ...args);
         this.paginate = (...args) => batchMethods.paginate(this, ...args);
+
+        // NodeHive Public API methods
+        this.getApiIndex = (...args) => publicApiMethods.getApiIndex(this, ...args);
+        this.getSpace = (...args) => publicApiMethods.getSpace(this, ...args);
     }
 
     /**

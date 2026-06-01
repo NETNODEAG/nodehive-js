@@ -1,7 +1,7 @@
 {
   "name": "nodehive-js",
   "description": "Official JavaScript client library for NodeHive Headless CMS",
-  "version": "2.0.0-beta.13",
+  "version": "2.0.0-beta.14",
   "type": "module",
   "main": "index.js",
   "types": "types.d.ts",
@@ -42,6 +42,7 @@
     "test:auth": "node tests/auth.test.js",
     "test:taxonomy": "node tests/taxonomy.test.js",
     "test:media": "node tests/media.test.js",
+    "test:public-api": "node tests/public-api.test.js",
     "test:errors": "node tests/error-handling.test.js",
     "test:all": "node tests/run-all.js"
   },

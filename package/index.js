@@ -3,6 +3,7 @@ import { NodeHiveClient } from "./src/NodeHiveClient.js";
 import {
   NodeHiveError,
   NetworkError,
+  ApiError,
   AuthenticationError,
   ValidationError,
   ConfigurationError,
@@ -24,6 +25,7 @@ export {
   // Error classes
   NodeHiveError,
   NetworkError,
+  ApiError,
   AuthenticationError,
   ValidationError,
   ConfigurationError,

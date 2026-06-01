@@ -18,6 +18,15 @@ export class NetworkError extends NodeHiveError {
   }
 }
 
+export class ApiError extends NodeHiveError {
+  constructor(message, error, response = null) {
+    super(message, "API_ERROR", { error, response });
+    this.name = "ApiError";
+    this.error = error;
+    this.response = response;
+  }
+}
+
 export class AuthenticationError extends NodeHiveError {
   constructor(message, details = {}) {
     super(message, "AUTH_ERROR", details);
