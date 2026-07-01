@@ -333,7 +333,10 @@ export class NodeHiveClient {
                 throw error;
             }
 
-            let responseData = await response.json();
+            let responseData =
+                response.status === 204 || response.status === 205
+                    ? null
+                    : await response.json();
 
             // Apply response interceptors
             if (!skipInterceptors) {

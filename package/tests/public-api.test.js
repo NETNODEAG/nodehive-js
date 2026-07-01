@@ -40,6 +40,25 @@ export async function runTests() {
         helper.assert(response.data.value === 42, 'raw data should be preserved');
     });
 
+    await helper.test('client.request() returns null for empty-body statuses (204/205)', async () => {
+        for (const status of [204, 205]) {
+            mockFetch({
+                ok: true,
+                status,
+                statusText: 'No Content',
+                json: async () => {
+                    throw new Error('Unexpected end of JSON input');
+                },
+            });
+
+            const response = await createClient().request('/jsonapi/node/page/123', {
+                method: 'DELETE',
+            });
+
+            helper.assert(response === null, `${status} response should resolve to null`);
+        }
+    });
+
     helper.section('Helper unwrapping');
 
     await helper.test('getApiIndex() unwraps a successful envelope', async () => {
