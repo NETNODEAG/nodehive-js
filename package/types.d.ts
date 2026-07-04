@@ -444,6 +444,12 @@ export interface RequestOptions {
     params?: DrupalJsonApiParams | Record<string, any>;
 }
 
+export type ResourceParams = DrupalJsonApiParams | Record<string, any>;
+
+export interface ResourceBySlugOptions extends Omit<RequestOptions, "params"> {
+    params?: ResourceParams | ((bundle: string) => ResourceParams);
+}
+
 // ===== Response Types =====
 export interface ApiResponse<T = any> {
     data?: T;
@@ -586,7 +592,7 @@ export class NodeHiveClient {
     getContentTypes(options?: RequestOptions): Promise<ApiResponse>;
     getNodes(contentType: string, options?: RequestOptions): Promise<ApiResponse>;
     getNode(uuid: string, contentType: string, options?: RequestOptions): Promise<ApiResponse>;
-    getResourceBySlug(slug: string, options?: RequestOptions): Promise<ApiResponse | null>;
+    getResourceBySlug(slug: string, options?: ResourceBySlugOptions): Promise<ApiResponse | null>;
 
     // ===== Menu Methods =====
     getMenus(options?: RequestOptions): Promise<ApiResponse>;

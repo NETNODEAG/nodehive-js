@@ -50,19 +50,27 @@ export async function getNode(client, uuid, contentType, options = {}) {
 
 /**
  * Get resource by slug (convenience method)
+ *
+ * options.params may be a DrupalJsonApiParams/plain object (as before) or a
+ * function (bundle) => params. The function form is resolved after the router
+ * call, so callers can set includes/fields/filters per resolved bundle without
+ * knowing the content type up front.
  */
 export async function getResourceBySlug(client, slug, options = {}) {
-    const { lang, ...requestOptions } = options;
+    const { lang, params, ...requestOptions } = options;
 
     try {
         const routerResponse = await client.router(slug, { lang, ...requestOptions });
 
         if (routerResponse?.entity?.uuid && routerResponse.entity.bundle) {
-            return client.getNode(
-                routerResponse.entity.uuid,
-                routerResponse.entity.bundle,
-                options
-            );
+            const { bundle } = routerResponse.entity;
+            const resolvedParams = typeof params === 'function' ? params(bundle) : params;
+
+            return client.getNode(routerResponse.entity.uuid, bundle, {
+                lang,
+                ...requestOptions,
+                params: resolvedParams,
+            });
         }
 
         return null;
