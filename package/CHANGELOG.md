@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Use `drupal-jsonapi-params` 3 internally while accepting v2 and v3 builders in SDK requests and pagination.
+- Legacy `getMedias()` and `getTaxonomies()` parameters now use the structural `JsonApiParamsLike` interface. Direct builder calls and chaining remain supported. **Pre-release TypeScript breaking change:** types extracted from these method signatures no longer retain the concrete builder class identity; callers returning them as `DrupalJsonApiParams` must use the structural type or preserve their input type with a generic helper.
+
+### Fixed
+
+- Reuse supplied pagination builders and advance their actual request offsets. Preserve filters, language and options across modern and legacy query methods, including independently installed builder copies.
+- Handle explicit empty options, missing legacy language arguments and terminal `next: null` links without repeating the first page.
+
+### Tests
+
+- Add backend-free v2/v3 runtime and TypeScript consumer matrices, multi-page request assertions and package-copy coverage. Run them before publishing.
+
 ## 2.0.0-beta.13
 
 ### Added
