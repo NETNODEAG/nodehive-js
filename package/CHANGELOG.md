@@ -8,6 +8,19 @@
 ### Deprecated
 - `getTranslatedPaths()` is documented as deprecated without changing its implementation or signature. No automatic migration or removal is scheduled. Consumers of the new method must handle missing language keys and isolate personally authenticated caches.
 
+## 2.0.0-beta.17
+
+### Changed
+
+- Use `drupal-jsonapi-params` 3 internally while accepting v2 and v3 builders in SDK requests and pagination.
+- Legacy `getMedias()` and `getTaxonomies()` parameters now use `ResourceParams`, matching modern methods and accepting builders or plain query objects. Types extracted from these signatures now include plain objects; callers requiring builder methods must retain their concrete builder type.
+- Upstream v3 compatibility note: `getQueryObject()` omits `include` and `sort` when unset instead of returning empty arrays. Direct consumers requiring the old shape can use `{ include: [], sort: [], ...params.getQueryObject() }`. Standard SDK query serialization is unchanged.
+
+### Fixed
+
+- Reuse supplied pagination builders and advance their actual request offsets. Preserve filters, language and options across modern and legacy query methods, including independently installed builder copies.
+- Handle explicit empty options, missing legacy language arguments and terminal `next: null` links without repeating the first page.
+
 ## 2.0.0-beta.13
 
 ### Added
