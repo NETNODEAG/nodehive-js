@@ -682,10 +682,10 @@ export class NodeHiveClient {
     getAvailableMenus(options?: RequestOptions): Promise<ApiResponse>;
 
     /** @deprecated Use getMediaList() instead */
-    getMedias(mediaType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+    getMedias(mediaType: string, lang?: string | null, params?: ResourceParams): Promise<ApiResponse>;
 
     /** @deprecated Use getTaxonomyTerms() instead */
-    getTaxonomies(taxonomyType: string, lang?: string | null, params?: DrupalJsonApiParams): Promise<ApiResponse>;
+    getTaxonomies(taxonomyType: string, lang?: string | null, params?: ResourceParams): Promise<ApiResponse>;
 
     /** @deprecated Use auth.login() instead */
     getJWTAccessToken(email: string, password: string): Promise<{ data: string | null; error: string | null }>;
