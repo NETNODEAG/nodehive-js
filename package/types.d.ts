@@ -634,7 +634,10 @@ export class NodeHiveClient {
     // ===== Router Methods =====
     router(slug: string, options?: RequestOptions): Promise<ApiResponse | null>;
     getRedirect(slug: string, options?: RequestOptions): Promise<RedirectData | null>;
+    /** @deprecated Use getTranslationPaths(); it omits missing or inaccessible translations. */
     getTranslatedPaths(slug: string, options?: RequestOptions): Promise<ApiResponse>;
+    /** Returns existing, accessible translation paths; options.lang is the optional source language. */
+    getTranslationPaths(path: string, options?: RequestOptions): Promise<Record<string, string>>;
 
     // ===== Batch & Pagination =====
     batch(requests: BatchRequest[]): Promise<any[]>;

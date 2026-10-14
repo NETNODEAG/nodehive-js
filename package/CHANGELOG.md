@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- `getTranslationPaths(path, options?)`: opt-in Public API helper for existing, accessible translations, with URL-encoded path and optional source-language `options.lang`. Returns a bare language-to-path map and preserves token/request options.
+
+### Deprecated
+- `getTranslatedPaths()` is documented as deprecated without changing its implementation or signature. No automatic migration or removal is scheduled. Consumers of the new method must handle missing language keys and isolate personally authenticated caches.
+
 ## 2.0.0-beta.13
 
 ### Added
