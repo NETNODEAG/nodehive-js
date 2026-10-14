@@ -1,4 +1,4 @@
-import { DrupalJsonApiParams, DrupalJsonApiParamsInterface, ParamBag } from "drupal-jsonapi-params";
+import { DrupalJsonApiParams } from "drupal-jsonapi-params";
 
 // ===== Error Types =====
 export class NodeHiveError extends Error {
@@ -435,26 +435,6 @@ export type ResponseInterceptor = (
 ) => Promise<any> | any;
 
 // ===== Request Types =====
-export interface JsonApiParamsLike {
-    initialize(input?: string | object | DrupalJsonApiParamsInterface): this;
-    addCustomParam(input: ParamBag<any>): this;
-    addFields(type: string, fields: string[]): this;
-    addSort(path: string, direction?: string): this;
-    addPageLimit(limit: number): this;
-    addPageOffset(offset: number): this;
-    addInclude(fields: string[]): this;
-    addGroup(name: string, conjunction?: string, memberOf?: string): this;
-    addFilter(path: string, value: string | string[] | null, operator?: string, memberOf?: string, key?: string): this;
-    getQueryObject(): ParamBag<any>;
-    getQueryString(options?: object): string;
-    clear(): this;
-    initializeWithQueryObject(input: any): this;
-    initializeWithQueryString(input: string, options?: object): this;
-    clone(input: DrupalJsonApiParamsInterface): this;
-    setQsOption(options: object): this;
-    getQsOption(): object;
-}
-
 export interface RequestOptions {
     method?: string;
     data?: any;
@@ -702,10 +682,10 @@ export class NodeHiveClient {
     getAvailableMenus(options?: RequestOptions): Promise<ApiResponse>;
 
     /** @deprecated Use getMediaList() instead */
-    getMedias(mediaType: string, lang?: string | null, params?: JsonApiParamsLike): Promise<ApiResponse>;
+    getMedias(mediaType: string, lang?: string | null, params?: ResourceParams): Promise<ApiResponse>;
 
     /** @deprecated Use getTaxonomyTerms() instead */
-    getTaxonomies(taxonomyType: string, lang?: string | null, params?: JsonApiParamsLike): Promise<ApiResponse>;
+    getTaxonomies(taxonomyType: string, lang?: string | null, params?: ResourceParams): Promise<ApiResponse>;
 
     /** @deprecated Use auth.login() instead */
     getJWTAccessToken(email: string, password: string): Promise<{ data: string | null; error: string | null }>;
@@ -773,7 +753,6 @@ declare module 'nodehive-js' {
         PublicApiSpace,
         RedirectData,
         RequestOptions,
-        JsonApiParamsLike,
         LoginResult,
         UserDetails
     };

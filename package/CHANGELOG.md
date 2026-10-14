@@ -5,7 +5,8 @@
 ### Changed
 
 - Use `drupal-jsonapi-params` 3 internally while accepting v2 and v3 builders in SDK requests and pagination.
-- Legacy `getMedias()` and `getTaxonomies()` parameters now use the structural `JsonApiParamsLike` interface. Direct builder calls and chaining remain supported. **Pre-release TypeScript breaking change:** types extracted from these method signatures no longer retain the concrete builder class identity; callers returning them as `DrupalJsonApiParams` must use the structural type or preserve their input type with a generic helper.
+- Legacy `getMedias()` and `getTaxonomies()` parameters now use `ResourceParams`, matching modern methods and accepting builders or plain query objects. Types extracted from these signatures now include plain objects; callers requiring builder methods must retain their concrete builder type.
+- Upstream v3 compatibility note: `getQueryObject()` omits `include` and `sort` when unset instead of returning empty arrays. Direct consumers requiring the old shape can use `{ include: [], sort: [], ...params.getQueryObject() }`. Standard SDK query serialization is unchanged.
 
 ### Fixed
 
