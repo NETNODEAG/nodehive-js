@@ -177,6 +177,7 @@ export class NodeHiveClient {
         this.getRedirects = (...args) => routerMethods.getRedirects(this, ...args);
         this.getRedirect = (...args) => routerMethods.getRedirect(this, ...args);
         this.getTranslatedPaths = (...args) => routerMethods.getTranslatedPaths(this, ...args);
+        this.getTranslationPaths = (...args) => routerMethods.getTranslationPaths(this, ...args);
 
         // Batch methods
         this.batch = (...args) => batchMethods.batch(this, ...args);
