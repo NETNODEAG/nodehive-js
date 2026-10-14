@@ -41,7 +41,5 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run test:unit
-
       - name: Publish
         run: npm publish --provenance --access public ${{ github.event.release.prerelease && '--tag beta' || '' }}

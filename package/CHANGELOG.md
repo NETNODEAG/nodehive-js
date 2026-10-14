@@ -12,10 +12,6 @@
 - Reuse supplied pagination builders and advance their actual request offsets. Preserve filters, language and options across modern and legacy query methods, including independently installed builder copies.
 - Handle explicit empty options, missing legacy language arguments and terminal `next: null` links without repeating the first page.
 
-### Tests
-
-- Add backend-free v2/v3 runtime and TypeScript consumer matrices, multi-page request assertions and package-copy coverage. Run them before publishing.
-
 ## 2.0.0-beta.13
 
 ### Added

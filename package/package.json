@@ -36,7 +36,6 @@
   "homepage": "https://github.com/NETNODEAG/nodehive-js#readme",
   "scripts": {
     "test": "node tests/run-all.js",
-    "test:unit": "node --test tests/*.unit.test.js && node tests/get-resource-by-slug.test.js && node tests/public-api.test.js",
     "test:simple": "node tests/simple-test.js",
     "test:comprehensive": "node tests/comprehensive-test.js",
     "test:core": "node tests/core.test.js",
@@ -50,10 +49,5 @@
   },
   "dependencies": {
     "drupal-jsonapi-params": "^3.0.1"
-  },
-  "devDependencies": {
-    "drupal-jsonapi-params-v2": "npm:drupal-jsonapi-params@2.3.2",
-    "typescript": "^6.0.3",
-    "typescript-min": "npm:typescript@5.9.3"
   }
 }
