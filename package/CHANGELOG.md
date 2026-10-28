@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.0-beta.18
 
 ### Added
 - `getTranslationPaths(path, options?)`: opt-in Public API helper for existing, accessible translations, with URL-encoded path and optional source-language `options.lang`. Returns a bare language-to-path map and preserves token/request options.
