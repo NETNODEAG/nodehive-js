@@ -103,8 +103,17 @@ export async function getRedirect(client, slug, options = {}) {
     }
 }
 
+/** Returns paths to existing translations accessible to the authenticated user. */
+export async function getTranslationPaths(client, path, options = {}) {
+    const { lang, ...requestOptions } = options;
+    const endpoint = `/nodehive-api/v1/translation-paths?path=${encodeURIComponent(path)}`
+        + (lang != null ? `&lang=${encodeURIComponent(lang)}` : '');
+    return client.request(endpoint, { lang, ...requestOptions });
+}
+
 /**
  * Get translated paths
+ * @deprecated Use getTranslationPaths(); it omits missing or inaccessible translations.
  */
 export async function getTranslatedPaths(client, slug, options = {}) {
     const endpoint = `/nodehive/api/translated-paths?path=${slug}`;
